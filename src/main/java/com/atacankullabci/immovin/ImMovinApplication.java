@@ -9,5 +9,4 @@ public class ImMovinApplication {
     public static void main(String[] args) {
         SpringApplication.run(ImMovinApplication.class, args);
     }
-
 }

@@ -7,49 +7,49 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement(name = "mediaContent")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class MediaContent {
-    private Album album;
-    private Artist artist;
-    private Track track;
+    private String trackName;
+    private String artistName;
+    private String albumName;
 
     public MediaContent() {
     }
 
-    public MediaContent(Album album, Artist artist, Track track) {
-        this.album = album;
-        this.artist = artist;
-        this.track = track;
+    public MediaContent(String trackName, String artistName, String albumName) {
+        this.trackName = trackName;
+        this.artistName = artistName;
+        this.albumName = albumName;
     }
 
-    public Album getAlbum() {
-        return album;
+    public String getTrackName() {
+        return trackName;
     }
 
-    public void setAlbum(Album album) {
-        this.album = album;
+    public void setTrackName(String trackName) {
+        this.trackName = trackName;
     }
 
-    public Artist getArtist() {
-        return artist;
+    public String getArtistName() {
+        return artistName;
     }
 
-    public void setArtist(Artist artist) {
-        this.artist = artist;
+    public void setArtistName(String artistName) {
+        this.artistName = artistName;
     }
 
-    public Track getTrack() {
-        return track;
+    public String getAlbumName() {
+        return albumName;
     }
 
-    public void setTrack(Track track) {
-        this.track = track;
+    public void setAlbumName(String albumName) {
+        this.albumName = albumName;
     }
 
     @Override
     public String toString() {
         return "MediaContent{" +
-                "album=" + album +
-                ", artist=" + artist +
-                ", track=" + track +
+                "trackName='" + trackName + '\'' +
+                ", artistName='" + artistName + '\'' +
+                ", albumName='" + albumName + '\'' +
                 '}';
     }
 }
