@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 public class ObjectHandler {
 
-    public List<MediaContent> getMediaContentList(String file) {
+    public List<MediaContent> getMediaContentList(byte[] file) {
         String rawMediaContent = "";
         try {
             rawMediaContent = LibraryTransformer.transform(file);
