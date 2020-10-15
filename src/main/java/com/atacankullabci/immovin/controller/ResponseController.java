@@ -10,7 +10,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("callback")
-@CrossOrigin("http://localhost:4200")
+//@CrossOrigin("http://localhost:4200")
+@CrossOrigin("http://imovin.club")
 public class ResponseController {
 
     private final CacheService cacheService;

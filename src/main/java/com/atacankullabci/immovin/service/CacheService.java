@@ -12,21 +12,25 @@ import java.util.Map;
 public class CacheService {
 
     private final HazelcastInstance hazelcastInstance;
+    private Map<String, Boolean> codeMap;
 
     public CacheService(@Qualifier("hazelcastInstance") HazelcastInstance hazelcastInstance) {
         this.hazelcastInstance = hazelcastInstance;
+        this.codeMap = hazelcastInstance.getMap("spotify-code-cache");
     }
 
     public void put(String code) {
-        Map<String, Boolean> hazelcastMap = hazelcastInstance.getMap("spotify-code-cache");
-        hazelcastMap.put(code, false);
+        codeMap.put(code, false);
+    }
+
+    public void updateCode(String code) {
+        codeMap.put(code, true);
     }
 
     public List<String> getAllInactivatedCaches() {
-        Map<String, Boolean> hazelcastMap = hazelcastInstance.getMap("spotify-code-cache");
         List<String> inactiveCacheList = new ArrayList<>();
-        for (String cache : hazelcastMap.keySet()) {
-            if (!hazelcastMap.get(cache)) {
+        for (String cache : codeMap.keySet()) {
+            if (!codeMap.get(cache)) {
                 inactiveCacheList.add(cache);
             }
         }

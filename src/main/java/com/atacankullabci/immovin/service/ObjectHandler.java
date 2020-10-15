@@ -11,9 +11,10 @@ import java.util.List;
 public class ObjectHandler {
 
     public List<MediaContent> getMediaContentList(byte[] file) {
+        LibraryTransformer transformer = new LibraryTransformer();
         String rawMediaContent = "";
         try {
-            rawMediaContent = LibraryTransformer.transform(file);
+            rawMediaContent = transformer.transform(file);
         } catch (TransformerException e) {
             e.printStackTrace();
         }
