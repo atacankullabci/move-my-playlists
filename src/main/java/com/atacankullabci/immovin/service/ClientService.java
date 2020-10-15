@@ -45,6 +45,7 @@ public class ClientService {
             try {
                 response = restTemplate
                         .exchange(url, HttpMethod.POST, request, TokenDTO.class);
+                this.cacheService.updateCode(code);
             } catch (HttpClientErrorException e) {
                 System.err.println(e);
                 continue;

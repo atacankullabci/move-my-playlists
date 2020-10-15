@@ -12,7 +12,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:4200")
+//@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "http://imovin.club")
 public class FileController {
 
     private final ObjectHandler objectHandler;
@@ -29,6 +30,7 @@ public class FileController {
         List<MediaContent> mediaContentList = null;
         try {
             mediaContentList = objectHandler.getMediaContentList(libraryFile.getBytes());
+            System.out.println(mediaContentList.get(1));
         } catch (IOException e) {
             e.printStackTrace();
         }
