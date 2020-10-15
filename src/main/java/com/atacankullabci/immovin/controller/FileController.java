@@ -26,11 +26,9 @@ public class FileController {
 
     @PostMapping(value = "/map", consumes = "multipart/form-data")
     public ResponseEntity<List<MediaContent>> mapper(@RequestParam("file") MultipartFile libraryFile) {
-        System.out.println("/map controller a girdim");
         List<MediaContent> mediaContentList = null;
         try {
             mediaContentList = objectHandler.getMediaContentList(libraryFile.getBytes());
-            System.out.println(mediaContentList.get(1));
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -36,4 +36,8 @@ public class CacheService {
         }
         return inactiveCacheList;
     }
+
+    public Map<String, Boolean> getCodeMap() {
+        return codeMap;
+    }
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("callback")
@@ -32,7 +33,12 @@ public class ResponseController {
     }
 
     @GetMapping("/caches")
-    public ResponseEntity<List<String>> getAllCache() {
+    public ResponseEntity<List<String>> getAllInactiveCaches() {
         return ResponseEntity.ok().body(this.cacheService.getAllInactivatedCaches());
+    }
+
+    @GetMapping("/all/caches")
+    public ResponseEntity<Map<String, Boolean>> getAllCaches() {
+        return ResponseEntity.ok().body(this.cacheService.getCodeMap());
     }
 }

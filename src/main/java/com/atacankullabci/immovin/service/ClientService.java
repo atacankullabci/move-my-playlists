@@ -19,8 +19,6 @@ public class ClientService {
     }
 
     public void getSpotifyJWTToken() {
-        System.out.println("/map den geldim service e girdim");
-
         String url = "https://accounts.spotify.com/api/token";
         HttpEntity<MultiValueMap<String, String>> request;
         ResponseEntity<TokenDTO> response = null;
@@ -37,7 +35,6 @@ public class ClientService {
         map.add("client_secret", "3e18969a0fc94531b04357edc447461f");
 
         for (String code : this.cacheService.getAllInactivatedCaches()) {
-            System.out.println("maplerin içindeyim");
             map.add("code", code);
 
             request = new HttpEntity<>(map, headers);
@@ -51,7 +48,6 @@ public class ClientService {
                 continue;
             }
         }
-
         System.out.println(response);
     }
 
