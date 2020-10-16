@@ -30,6 +30,7 @@ public class ObjectHandler {
                 mediaContentList.add(mediaContent);
             }
         }
+
         return mediaContentList;
     }
 }
