@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -34,15 +35,17 @@ public class FileController {
         List<MediaContent> mediaContentList = null;
         try {
             mediaContentList = objectHandler.getMediaContentList(libraryFile.getBytes());
-            this.clientRepository.save(new Client(ip, mediaContentList));
+            this.clientRepository.save(new Client(ip, Instant.now(), mediaContentList));
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        clientService.getSpotifyJWTToken();
         return ResponseEntity.ok().body(mediaContentList);
     }
 
-    public ResponseEntity<String> getJWTToken() {
-        clientService.getSpotifyJWTToken();
-        return ResponseEntity.ok("OK");
+    @GetMapping("/getAll")
+    public ResponseEntity<List<Client>> getAllList() {
+        return ResponseEntity.ok().body(this.clientRepository.findAll());
     }
 }

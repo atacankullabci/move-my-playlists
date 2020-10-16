@@ -26,8 +26,8 @@ public class ResponseController {
         this.cacheService.put(code);
         System.out.println(code);
         try {
-            response.setHeader("app-code", code);
-            response.sendRedirect("http://imovin.club");
+            //response.sendRedirect("http://localhost:4200/?code=" + code);
+            response.sendRedirect("http://imovin.club/?code=" + code);
         } catch (IOException e) {
             e.printStackTrace();
         }

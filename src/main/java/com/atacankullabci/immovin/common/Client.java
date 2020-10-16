@@ -3,6 +3,7 @@ package com.atacankullabci.immovin.common;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.util.List;
 
 @Document
@@ -10,13 +11,15 @@ public class Client {
     @Id
     private String id;
     private String ip;
+    private Instant issueDate;
     private List<MediaContent> mediaContentList;
 
     public Client() {
     }
 
-    public Client(String ip, List<MediaContent> mediaContentList) {
+    public Client(String ip, Instant issueDate, List<MediaContent> mediaContentList) {
         this.ip = ip;
+        this.issueDate = issueDate;
         this.mediaContentList = mediaContentList;
     }
 
@@ -36,6 +39,14 @@ public class Client {
         this.ip = ip;
     }
 
+    public Instant getIssueDate() {
+        return issueDate;
+    }
+
+    public void setIssueDate(Instant issueDate) {
+        this.issueDate = issueDate;
+    }
+
     public List<MediaContent> getMediaContentList() {
         return mediaContentList;
     }
@@ -47,7 +58,9 @@ public class Client {
     @Override
     public String toString() {
         return "Client{" +
-                "ip='" + ip + '\'' +
+                "id='" + id + '\'' +
+                ", ip='" + ip + '\'' +
+                ", issueDate=" + issueDate +
                 ", mediaContentList=" + mediaContentList +
                 '}';
     }
