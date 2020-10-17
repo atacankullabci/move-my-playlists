@@ -15,8 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-//@CrossOrigin(origins = "http://localhost:4200")
-@CrossOrigin(origins = "http://imovin.club")
+@CrossOrigin(origins = {"http://imovin.club", "http://localhost:4200"})
 public class FileController {
 
     private final ObjectHandler objectHandler;
@@ -40,7 +39,6 @@ public class FileController {
             e.printStackTrace();
         }
 
-        clientService.getSpotifyJWTToken();
         return ResponseEntity.ok().body(mediaContentList);
     }
 

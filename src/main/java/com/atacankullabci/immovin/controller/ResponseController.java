@@ -1,6 +1,9 @@
 package com.atacankullabci.immovin.controller;
 
+import com.atacankullabci.immovin.dto.TokenDTO;
+import com.atacankullabci.immovin.dto.User;
 import com.atacankullabci.immovin.service.CacheService;
+import com.atacankullabci.immovin.service.ClientService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,14 +14,15 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("callback")
-//@CrossOrigin("http://localhost:4200")
-@CrossOrigin("http://imovin.club")
+@CrossOrigin(origins = {"http://imovin.club", "http://localhost:4200"})
 public class ResponseController {
 
     private final CacheService cacheService;
+    private ClientService clientService;
 
-    public ResponseController(CacheService cacheService) {
+    public ResponseController(CacheService cacheService, ClientService clientService) {
         this.cacheService = cacheService;
+        this.clientService = clientService;
     }
 
     @GetMapping
@@ -26,8 +30,13 @@ public class ResponseController {
         this.cacheService.put(code);
         System.out.println(code);
         try {
-            //response.sendRedirect("http://localhost:4200/?code=" + code);
-            response.sendRedirect("http://imovin.club/?code=" + code);
+            TokenDTO tokenDTO = this.clientService.getJWTToken(code);
+            User user = this.clientService.getUserInfo(tokenDTO);
+
+            //response.sendRedirect("http://localhost:4200/?code=" + code +
+            //      "&username=" + user.getDisplay_name() + "&externalUrl=" + user.getExternal_urls().getSpotify());
+            response.sendRedirect("http://imovin.club/?code=" + code +
+                    "&username=" + user.getDisplay_name() + "&externalUrl=" + user.getExternal_urls().getSpotify());
         } catch (IOException e) {
             e.printStackTrace();
         }
