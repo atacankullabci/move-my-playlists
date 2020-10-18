@@ -4,7 +4,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
-import java.util.List;
 
 @Document
 public class Client {
@@ -12,15 +11,13 @@ public class Client {
     private String id;
     private String ip;
     private Instant issueDate;
-    private List<MediaContent> mediaContentList;
 
     public Client() {
     }
 
-    public Client(String ip, Instant issueDate, List<MediaContent> mediaContentList) {
+    public Client(String ip, Instant issueDate) {
         this.ip = ip;
         this.issueDate = issueDate;
-        this.mediaContentList = mediaContentList;
     }
 
     public String getId() {
@@ -47,21 +44,12 @@ public class Client {
         this.issueDate = issueDate;
     }
 
-    public List<MediaContent> getMediaContentList() {
-        return mediaContentList;
-    }
-
-    public void setMediaContentList(List<MediaContent> mediaContentList) {
-        this.mediaContentList = mediaContentList;
-    }
-
     @Override
     public String toString() {
         return "Client{" +
                 "id='" + id + '\'' +
                 ", ip='" + ip + '\'' +
                 ", issueDate=" + issueDate +
-                ", mediaContentList=" + mediaContentList +
                 '}';
     }
 }

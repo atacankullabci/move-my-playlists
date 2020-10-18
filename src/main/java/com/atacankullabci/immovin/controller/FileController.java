@@ -34,7 +34,7 @@ public class FileController {
         List<MediaContent> mediaContentList = null;
         try {
             mediaContentList = objectHandler.getMediaContentList(libraryFile.getBytes());
-            this.clientRepository.save(new Client(ip, Instant.now(), mediaContentList));
+            this.clientRepository.save(new Client(ip, Instant.now()));
         } catch (IOException e) {
             e.printStackTrace();
         }
