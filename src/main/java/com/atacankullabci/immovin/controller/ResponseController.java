@@ -1,9 +1,10 @@
 package com.atacankullabci.immovin.controller;
 
-import com.atacankullabci.immovin.dto.TokenDTO;
-import com.atacankullabci.immovin.dto.User;
+import com.atacankullabci.immovin.common.Token;
+import com.atacankullabci.immovin.common.User;
+import com.atacankullabci.immovin.repository.UserRepository;
 import com.atacankullabci.immovin.service.CacheService;
-import com.atacankullabci.immovin.service.ClientService;
+import com.atacankullabci.immovin.service.MapperService;
 import com.atacankullabci.immovin.service.SpotifyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,13 +20,15 @@ import java.util.Map;
 public class ResponseController {
 
     private final CacheService cacheService;
-    private ClientService clientService;
     private SpotifyService spotifyService;
+    private MapperService mapperService;
+    private UserRepository userRepository;
 
-    public ResponseController(CacheService cacheService, ClientService clientService, SpotifyService spotifyService) {
+    public ResponseController(CacheService cacheService, SpotifyService spotifyService, MapperService mapperService, UserRepository userRepository) {
         this.cacheService = cacheService;
-        this.clientService = clientService;
         this.spotifyService = spotifyService;
+        this.mapperService = mapperService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping
@@ -33,13 +36,14 @@ public class ResponseController {
         this.cacheService.put(code);
         System.out.println(code);
         try {
-            TokenDTO tokenDTO = this.clientService.getJWTToken(code);
-            User user = this.spotifyService.getUserInfo(tokenDTO);
+            Token token = this.mapperService.mapToken(this.spotifyService.getJWTToken(code));
+            User user = this.mapperService.mapUser(this.spotifyService.getUserInfo(token.getAccessToken()), token);
+
+            this.userRepository.save(user);
 
             //response.sendRedirect("http://localhost:4200/?code=" + code +
             //    "&username=" + user.getDisplay_name() + "&externalUrl=" + user.getExternal_urls().getSpotify());
-            response.sendRedirect("http://imovin.club/?code=" + code +
-                    "&username=" + user.getDisplay_name() + "&externalUrl=" + user.getExternal_urls().getSpotify());
+            response.sendRedirect("http://imovin.club/?username=" + user.getUsername() + "&externalUrl=" + user.getExternalUrl());
         } catch (IOException e) {
             e.printStackTrace();
         }
