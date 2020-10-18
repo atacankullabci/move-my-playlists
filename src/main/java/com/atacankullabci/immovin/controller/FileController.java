@@ -6,6 +6,7 @@ import com.atacankullabci.immovin.common.User;
 import com.atacankullabci.immovin.repository.ClientRepository;
 import com.atacankullabci.immovin.repository.UserRepository;
 import com.atacankullabci.immovin.service.ObjectHandler;
+import com.atacankullabci.immovin.service.SpotifyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,11 +23,13 @@ public class FileController {
     private final ObjectHandler objectHandler;
     private ClientRepository clientRepository;
     private UserRepository userRepository;
+    private SpotifyService spotifyService;
 
-    public FileController(ObjectHandler objectHandler, ClientRepository clientRepository, UserRepository userRepository) {
+    public FileController(ObjectHandler objectHandler, ClientRepository clientRepository, UserRepository userRepository, SpotifyService spotifyService) {
         this.objectHandler = objectHandler;
         this.clientRepository = clientRepository;
         this.userRepository = userRepository;
+        this.spotifyService = spotifyService;
     }
 
     @PostMapping(value = "/map", consumes = "multipart/form-data")
@@ -46,6 +49,13 @@ public class FileController {
         }
 
         return ResponseEntity.ok().body(mediaContentList);
+    }
+
+    @GetMapping("/migrate")
+    public ResponseEntity<List<String>> migrate(@RequestHeader("username") String username,
+                                                @RequestHeader("external-url") String externalUrl) {
+        User user = this.userRepository.findByUsernameAndExternalUrl(username, externalUrl);
+        return ResponseEntity.ok().body(this.spotifyService.getTrackQueryList(user.getMediaContentList()));
     }
 
     @GetMapping("/getAll")
