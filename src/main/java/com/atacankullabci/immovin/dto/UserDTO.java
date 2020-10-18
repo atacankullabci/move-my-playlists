@@ -1,13 +1,13 @@
 package com.atacankullabci.immovin.dto;
 
-public class User {
+public class UserDTO {
     private String display_name;
     private ExternalUrl external_urls;
 
-    public User() {
+    public UserDTO() {
     }
 
-    public User(String display_name, ExternalUrl external_urls) {
+    public UserDTO(String display_name, ExternalUrl external_urls) {
         this.display_name = display_name;
         this.external_urls = external_urls;
     }
