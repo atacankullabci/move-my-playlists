@@ -4,6 +4,7 @@ import com.atacankullabci.immovin.dto.TokenDTO;
 import com.atacankullabci.immovin.dto.User;
 import com.atacankullabci.immovin.service.CacheService;
 import com.atacankullabci.immovin.service.ClientService;
+import com.atacankullabci.immovin.service.SpotifyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,10 +20,12 @@ public class ResponseController {
 
     private final CacheService cacheService;
     private ClientService clientService;
+    private SpotifyService spotifyService;
 
-    public ResponseController(CacheService cacheService, ClientService clientService) {
+    public ResponseController(CacheService cacheService, ClientService clientService, SpotifyService spotifyService) {
         this.cacheService = cacheService;
         this.clientService = clientService;
+        this.spotifyService = spotifyService;
     }
 
     @GetMapping
@@ -31,10 +34,10 @@ public class ResponseController {
         System.out.println(code);
         try {
             TokenDTO tokenDTO = this.clientService.getJWTToken(code);
-            User user = this.clientService.getUserInfo(tokenDTO);
+            User user = this.spotifyService.getUserInfo(tokenDTO);
 
             //response.sendRedirect("http://localhost:4200/?code=" + code +
-            //      "&username=" + user.getDisplay_name() + "&externalUrl=" + user.getExternal_urls().getSpotify());
+            //    "&username=" + user.getDisplay_name() + "&externalUrl=" + user.getExternal_urls().getSpotify());
             response.sendRedirect("http://imovin.club/?code=" + code +
                     "&username=" + user.getDisplay_name() + "&externalUrl=" + user.getExternal_urls().getSpotify());
         } catch (IOException e) {

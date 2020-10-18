@@ -1,6 +1,7 @@
 package com.atacankullabci.immovin.service;
 
 import com.atacankullabci.immovin.common.MediaContent;
+import com.atacankullabci.immovin.repository.MediaContentRepository;
 import org.springframework.stereotype.Service;
 
 import javax.xml.transform.TransformerException;
@@ -9,6 +10,12 @@ import java.util.List;
 
 @Service
 public class ObjectHandler {
+
+    private final MediaContentRepository mediaContentRepository;
+
+    public ObjectHandler(MediaContentRepository mediaContentRepository) {
+        this.mediaContentRepository = mediaContentRepository;
+    }
 
     public List<MediaContent> getMediaContentList(byte[] file) {
         LibraryTransformer transformer = new LibraryTransformer();
@@ -25,12 +32,14 @@ public class ObjectHandler {
         MediaContent mediaContent;
         for (String mediaContentLineElem : mediaContentLineArr) {
             mediaContentArr = mediaContentLineElem.split("#");
-            if (mediaContentArr.length == 3) {
-                mediaContent = new MediaContent(mediaContentArr[0], mediaContentArr[1], mediaContentArr[2]);
+            if (mediaContentArr.length == 5) {
+                mediaContent = new MediaContent(mediaContentArr[0], mediaContentArr[1],
+                        mediaContentArr[2], mediaContentArr[3], mediaContentArr[4]);
                 mediaContentList.add(mediaContent);
             }
         }
 
+        this.mediaContentRepository.saveAll(mediaContentList);
         return mediaContentList;
     }
 }
