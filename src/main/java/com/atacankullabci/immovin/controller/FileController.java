@@ -5,6 +5,7 @@ import com.atacankullabci.immovin.common.MediaContent;
 import com.atacankullabci.immovin.common.User;
 import com.atacankullabci.immovin.repository.ClientRepository;
 import com.atacankullabci.immovin.repository.UserRepository;
+import com.atacankullabci.immovin.service.LibraryTransformer;
 import com.atacankullabci.immovin.service.ObjectHandler;
 import com.atacankullabci.immovin.service.SpotifyService;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,7 @@ public class FileController {
         List<MediaContent> mediaContentList = null;
         try {
             mediaContentList = objectHandler.getMediaContentList(libraryFile.getBytes());
+            mediaContentList = LibraryTransformer.tameMediaContent(mediaContentList);
             User user = this.userRepository.findByUsernameAndExternalUrl(username, externalUrl);
             user.setMediaContentList(mediaContentList);
             this.userRepository.save(user);
@@ -52,10 +54,11 @@ public class FileController {
     }
 
     @GetMapping("/migrate")
-    public ResponseEntity<List<String>> migrate(@RequestHeader("username") String username,
-                                                @RequestHeader("external-url") String externalUrl) {
+    public ResponseEntity<Void> migrate(@RequestHeader("username") String username,
+                                        @RequestHeader("external-url") String externalUrl) {
         User user = this.userRepository.findByUsernameAndExternalUrl(username, externalUrl);
-        return ResponseEntity.ok().body(this.spotifyService.getTrackQueryList(user.getMediaContentList()));
+        this.spotifyService.requestSpotifyTrackIds(user);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/getAll")
