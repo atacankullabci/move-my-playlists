@@ -14,6 +14,6 @@ public class MapperService {
     }
 
     public User mapUser(UserDTO userDTO, Token token) {
-        return new User(userDTO.getDisplay_name(), userDTO.getExternal_urls().getSpotify(), token);
+        return new User(userDTO.getDisplay_name(), userDTO.getExternal_urls().getSpotify(), null, token);
     }
 }

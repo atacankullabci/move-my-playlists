@@ -11,15 +11,17 @@ public class User {
     private String id;
     private String username;
     private String externalUrl;
+    private String code;
     private Token token;
     private List<MediaContent> mediaContentList;
 
     public User() {
     }
 
-    public User(String username, String externalUrl, Token token) {
+    public User(String username, String externalUrl, String code, Token token) {
         this.username = username;
         this.externalUrl = externalUrl;
+        this.code = code;
         this.token = token;
     }
 
@@ -47,6 +49,14 @@ public class User {
         this.externalUrl = externalUrl;
     }
 
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
     public Token getToken() {
         return token;
     }
@@ -69,6 +79,7 @@ public class User {
                 "id='" + id + '\'' +
                 ", username='" + username + '\'' +
                 ", externalUrl='" + externalUrl + '\'' +
+                ", code='" + code + '\'' +
                 ", token=" + token +
                 ", mediaContentList=" + mediaContentList +
                 '}';
