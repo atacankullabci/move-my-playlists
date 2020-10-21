@@ -38,11 +38,13 @@ public class ResponseController {
         try {
             Token token = this.mapperService.mapToken(this.spotifyService.getJWTToken(code));
             User user = this.mapperService.mapUser(this.spotifyService.getUserInfo(token.getAccessToken()), token);
+            user.setCode(code);
 
             this.userRepository.save(user);
 
-            response.sendRedirect("http://localhost:4200/?username=" + user.getUsername() + "&externalUrl=" + user.getExternalUrl());
-            //response.sendRedirect("http://imovin.club/?username=" + user.getUsername() + "&externalUrl=" + user.getExternalUrl());
+            response.sendRedirect("http://imovin.club/?username=" + user.getUsername() +
+                    "&externalUrl=" + user.getExternalUrl() +
+                    "&code=" + user.getCode());
         } catch (IOException e) {
             e.printStackTrace();
         }
