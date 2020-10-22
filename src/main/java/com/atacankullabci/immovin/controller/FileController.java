@@ -42,7 +42,7 @@ public class FileController {
         try {
             mediaContentList = objectHandler.getMediaContentList(libraryFile.getBytes());
             mediaContentList = LibraryTransformer.tameMediaContent(mediaContentList);
-            User user = this.userRepository.findByUsernameAndExternalUrl(username, externalUrl);
+            User user = this.userRepository.findBySpotifyUser_UsernameAndSpotifyUser_ExternalUrl(username, externalUrl);
             user.setMediaContentList(mediaContentList);
             this.userRepository.save(user);
             this.clientRepository.save(new Client(ip, Instant.now()));
@@ -56,7 +56,7 @@ public class FileController {
     @GetMapping("/migrate")
     public ResponseEntity<Void> migrate(@RequestHeader("username") String username,
                                         @RequestHeader("external-url") String externalUrl) {
-        User user = this.userRepository.findByUsernameAndExternalUrl(username, externalUrl);
+        User user = this.userRepository.findBySpotifyUser_UsernameAndSpotifyUser_ExternalUrl(username, externalUrl);
         this.spotifyService.requestSpotifyTrackIds(user);
         return ResponseEntity.ok().build();
     }
