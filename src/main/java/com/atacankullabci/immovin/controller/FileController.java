@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -36,33 +37,29 @@ public class FileController {
     @PostMapping(value = "/map", consumes = "multipart/form-data")
     public ResponseEntity<List<MediaContent>> mapper(@RequestParam("file") MultipartFile libraryFile,
                                                      @RequestHeader("client-ip") String ip,
-                                                     @RequestHeader("username") String username,
-                                                     @RequestHeader("external-url") String externalUrl) {
+                                                     @RequestHeader("id") String id) {
         List<MediaContent> mediaContentList = null;
         try {
             mediaContentList = objectHandler.getMediaContentList(libraryFile.getBytes());
             mediaContentList = LibraryTransformer.tameMediaContent(mediaContentList);
-            User user = this.userRepository.findBySpotifyUser_UsernameAndSpotifyUser_ExternalUrl(username, externalUrl);
-            user.setMediaContentList(mediaContentList);
-            this.userRepository.save(user);
+            Optional<User> user = this.userRepository.findById(id);
+            if (user.isPresent()) {
+                user.get().setMediaContentList(mediaContentList);
+                this.userRepository.save(user.get());
+            }
             this.clientRepository.save(new Client(ip, Instant.now()));
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return ResponseEntity.ok().body(mediaContentList);
     }
 
     @GetMapping("/migrate")
-    public ResponseEntity<Void> migrate(@RequestHeader("username") String username,
-                                        @RequestHeader("external-url") String externalUrl) {
-        User user = this.userRepository.findBySpotifyUser_UsernameAndSpotifyUser_ExternalUrl(username, externalUrl);
-        this.spotifyService.requestSpotifyTrackIds(user);
+    public ResponseEntity<Void> migrate(@RequestHeader("id") String id) {
+        Optional<User> user = this.userRepository.findById(id);
+        if (user.isPresent()) {
+            this.spotifyService.requestSpotifyTrackIds(user.get());
+        }
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/getAll")
-    public ResponseEntity<List<Client>> getAllList() {
-        return ResponseEntity.ok().body(this.clientRepository.findAll());
     }
 }
