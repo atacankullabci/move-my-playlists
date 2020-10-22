@@ -9,8 +9,7 @@ import java.util.List;
 public class User {
     @Id
     private String id;
-    private String username;
-    private String externalUrl;
+    private SpotifyUser spotifyUser;
     private String code;
     private Token token;
     private List<MediaContent> mediaContentList;
@@ -18,9 +17,8 @@ public class User {
     public User() {
     }
 
-    public User(String username, String externalUrl, String code, Token token) {
-        this.username = username;
-        this.externalUrl = externalUrl;
+    public User(SpotifyUser spotifyUser, String code, Token token) {
+        this.spotifyUser = spotifyUser;
         this.code = code;
         this.token = token;
     }
@@ -33,20 +31,12 @@ public class User {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public SpotifyUser getSpotifyUser() {
+        return spotifyUser;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getExternalUrl() {
-        return externalUrl;
-    }
-
-    public void setExternalUrl(String externalUrl) {
-        this.externalUrl = externalUrl;
+    public void setSpotifyUser(SpotifyUser spotifyUser) {
+        this.spotifyUser = spotifyUser;
     }
 
     public String getCode() {
@@ -77,8 +67,7 @@ public class User {
     public String toString() {
         return "User{" +
                 "id='" + id + '\'' +
-                ", username='" + username + '\'' +
-                ", externalUrl='" + externalUrl + '\'' +
+                ", spotifyUser=" + spotifyUser +
                 ", code='" + code + '\'' +
                 ", token=" + token +
                 ", mediaContentList=" + mediaContentList +

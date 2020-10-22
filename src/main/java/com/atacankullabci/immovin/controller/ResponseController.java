@@ -42,8 +42,8 @@ public class ResponseController {
 
             this.userRepository.save(user);
 
-            response.sendRedirect("http://imovin.club/?username=" + user.getUsername() +
-                    "&externalUrl=" + user.getExternalUrl() +
+            response.sendRedirect("http://imovin.club/?username=" + user.getSpotifyUser().getUsername() +
+                    "&externalUrl=" + user.getSpotifyUser().getExternalUrl() +
                     "&code=" + user.getCode());
         } catch (IOException e) {
             e.printStackTrace();
