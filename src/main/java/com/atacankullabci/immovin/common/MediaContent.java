@@ -31,6 +31,7 @@ public class MediaContent {
         this.trackId = trackId;
     }
 
+
     public String getTrackName() {
         return trackName;
     }
@@ -66,8 +67,7 @@ public class MediaContent {
     @Override
     public String toString() {
         return "MediaContent{" +
-                "trackId='" + trackId + '\'' +
-                ", trackName='" + trackName + '\'' +
+                "trackName='" + trackName + '\'' +
                 ", artistName='" + artistName + '\'' +
                 ", albumName='" + albumName + '\'' +
                 ", genre='" + genre + '\'' +

@@ -15,4 +15,5 @@ public class HealthChecker {
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("{\"status:\": \"OK\"}");
     }
+
 }

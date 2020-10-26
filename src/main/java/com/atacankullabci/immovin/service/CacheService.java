@@ -1,43 +1,29 @@
 package com.atacankullabci.immovin.service;
 
-import com.hazelcast.core.HazelcastInstance;
-import org.springframework.beans.factory.annotation.Qualifier;
+import com.atacankullabci.immovin.common.TrackIdMap;
+import com.atacankullabci.immovin.repository.TrackIdMapRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class CacheService {
 
-    private final HazelcastInstance hazelcastInstance;
-    private Map<String, Boolean> codeMap;
+    private final TrackIdMapRepository trackIdMapRepository;
 
-    public CacheService(@Qualifier("hazelcastInstance") HazelcastInstance hazelcastInstance) {
-        this.hazelcastInstance = hazelcastInstance;
-        this.codeMap = hazelcastInstance.getMap("spotify-code-cache");
+    public CacheService(TrackIdMapRepository trackIdMapRepository) {
+        this.trackIdMapRepository = trackIdMapRepository;
     }
 
-    public void put(String code) {
-        codeMap.put(code, false);
+    public void put(String iTunesId, String spotifyId) {
+        this.trackIdMapRepository.save(new TrackIdMap(iTunesId, spotifyId));
     }
 
-    public void updateCode(String code) {
-        codeMap.put(code, true);
-    }
-
-    public List<String> getAllInactivatedCaches() {
-        List<String> inactiveCacheList = new ArrayList<>();
-        for (String cache : codeMap.keySet()) {
-            if (!codeMap.get(cache)) {
-                inactiveCacheList.add(cache);
-            }
+    public String get(String iTunesId) {
+        Optional<TrackIdMap> trackIdMap = this.trackIdMapRepository.findById(iTunesId);
+        if (trackIdMap.isPresent()) {
+            return this.trackIdMapRepository.findById(iTunesId).get().getSpotifyTrackId();
         }
-        return inactiveCacheList;
-    }
-
-    public Map<String, Boolean> getCodeMap() {
-        return codeMap;
+        return null;
     }
 }

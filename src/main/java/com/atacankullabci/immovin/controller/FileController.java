@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,12 +55,13 @@ public class FileController {
         return ResponseEntity.ok().body(mediaContentList);
     }
 
-    @GetMapping("/migrate")
-    public ResponseEntity<Void> migrate(@RequestHeader("id") String id) {
+    @PostMapping("/migrate")
+    public ResponseEntity<List<MediaContent>> migrate(@RequestHeader("id") String id) {
         Optional<User> user = this.userRepository.findById(id);
+        List<MediaContent> unmatchedMediaContentList = new ArrayList<>();
         if (user.isPresent()) {
-            this.spotifyService.requestSpotifyTrackIds(user.get());
+            unmatchedMediaContentList = this.spotifyService.requestSpotifyTrackIds(user.get());
         }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(unmatchedMediaContentList);
     }
 }
