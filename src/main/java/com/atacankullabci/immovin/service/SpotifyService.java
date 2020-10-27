@@ -4,10 +4,8 @@ import com.atacankullabci.immovin.common.MediaContent;
 import com.atacankullabci.immovin.common.User;
 import com.atacankullabci.immovin.dto.TokenDTO;
 import com.atacankullabci.immovin.dto.UserDTO;
-import com.atacankullabci.immovin.repository.UserRepository;
 import com.jayway.jsonpath.JsonPath;
 import org.springframework.http.*;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -24,14 +22,11 @@ public class SpotifyService {
     private static final String baseTrackQueryStr = "https://api.spotify.com/v1/search?q=";
     private static final String getFirstTrackIdJsonPath = "$.tracks.items[0].id";
 
-    private final UserRepository userRepository;
     private final CacheService cacheService;
 
-    public SpotifyService(UserRepository userRepository, CacheService cacheService) {
-        this.userRepository = userRepository;
+    public SpotifyService(CacheService cacheService) {
         this.cacheService = cacheService;
     }
-
 
     public TokenDTO getJWTToken(String code) {
         String url = "https://accounts.spotify.com/api/token";
@@ -70,7 +65,7 @@ public class SpotifyService {
         return response.getBody();
     }
 
-    public boolean addTracksToSpotify(List<String> spotifyTrackIdList, String accessToken) {
+    public void addTracksToSpotify(List<String> spotifyTrackIdList, String accessToken) {
         String url = "https://api.spotify.com/v1/me/tracks";
 
         List<String> idList = new ArrayList<>();
@@ -104,11 +99,8 @@ public class SpotifyService {
             restTemplate.exchange(url, HttpMethod.PUT, request, Void.class);
             map.clear();
         }
-
-        return true;
     }
 
-    @Async
     public List<MediaContent> requestSpotifyTrackIds(User user) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + user.getToken().getAccessToken());
@@ -120,7 +112,7 @@ public class SpotifyService {
         List<String> trackIdList = new ArrayList<>();
         List<MediaContent> unmatchedMediaContentList = new ArrayList<>();
 
-        String url = "";
+        String url;
         String spotifyId;
 
         for (MediaContent mediaContent : user.getMediaContentList()) {
