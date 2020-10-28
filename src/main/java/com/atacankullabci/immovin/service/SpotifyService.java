@@ -6,6 +6,7 @@ import com.atacankullabci.immovin.dto.TokenDTO;
 import com.atacankullabci.immovin.dto.UserDTO;
 import com.jayway.jsonpath.JsonPath;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -101,7 +102,8 @@ public class SpotifyService {
         }
     }
 
-    public List<MediaContent> requestSpotifyTrackIds(User user) {
+    @Async
+    public void requestSpotifyTrackIds(User user) {
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + user.getToken().getAccessToken());
 
@@ -151,7 +153,7 @@ public class SpotifyService {
         }
         addTracksToSpotify(trackIdList, user.getToken().getAccessToken());
 
-        return unmatchedMediaContentList;
+        //return unmatchedMediaContentList;
     }
 
     private static String getIdFromResponse(String response) {
