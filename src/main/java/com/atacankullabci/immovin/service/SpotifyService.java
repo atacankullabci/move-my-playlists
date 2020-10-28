@@ -5,6 +5,8 @@ import com.atacankullabci.immovin.common.User;
 import com.atacankullabci.immovin.dto.TokenDTO;
 import com.atacankullabci.immovin.dto.UserDTO;
 import com.jayway.jsonpath.JsonPath;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,9 @@ import java.util.Map;
 
 @Service
 public class SpotifyService {
+
+    private static final long serialVersionUID = 1L;
+    static final Logger logger = LoggerFactory.getLogger(SpotifyService.class);
 
     private static final String baseTrackQueryStr = "https://api.spotify.com/v1/search?q=";
     private static final String getFirstTrackIdJsonPath = "$.tracks.items[0].id";
@@ -122,7 +127,7 @@ public class SpotifyService {
             String trackSpotifyId = cacheService.get(mediaContent.getTrackId());
             if (trackSpotifyId == null) {
                 url = getTrackQuery(mediaContent);
-                System.out.println("Denenen URL : " + url);
+                logger.info("Denenen URL : " + url);
                 response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
                 if (response.getBody().getBytes().length > 1000) {
                     spotifyId = getIdFromResponse(response.getBody());
