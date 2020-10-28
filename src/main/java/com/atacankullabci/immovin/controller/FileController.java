@@ -14,7 +14,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,6 +41,7 @@ public class FileController {
         List<MediaContent> mediaContentList = null;
         try {
             mediaContentList = objectHandler.getMediaContentList(libraryFile.getBytes());
+            // Make async operation for this method
             mediaContentList = LibraryTransformer.tameMediaContent(mediaContentList);
             Optional<User> user = this.userRepository.findById(id);
             if (user.isPresent()) {
@@ -56,12 +56,11 @@ public class FileController {
     }
 
     @PostMapping("/migrate")
-    public ResponseEntity<List<MediaContent>> migrate(@RequestHeader("id") String id) {
+    public ResponseEntity<Boolean> migrate(@RequestHeader("id") String id) {
         Optional<User> user = this.userRepository.findById(id);
-        List<MediaContent> unmatchedMediaContentList = new ArrayList<>();
         if (user.isPresent()) {
-            unmatchedMediaContentList = this.spotifyService.requestSpotifyTrackIds(user.get());
+            this.spotifyService.requestSpotifyTrackIds(user.get());
         }
-        return ResponseEntity.ok().body(unmatchedMediaContentList);
+        return ResponseEntity.ok().body(true);
     }
 }
