@@ -1,9 +1,12 @@
 package com.atacankullabci.immovin.service;
 
+import com.atacankullabci.immovin.common.InProgressMap;
 import com.atacankullabci.immovin.common.MediaContent;
 import com.atacankullabci.immovin.common.User;
 import com.atacankullabci.immovin.dto.TokenDTO;
 import com.atacankullabci.immovin.dto.UserDTO;
+import com.atacankullabci.immovin.repository.InProgressMapRepository;
+import com.atacankullabci.immovin.repository.UserRepository;
 import com.jayway.jsonpath.JsonPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +32,13 @@ public class SpotifyService {
     private static final String getFirstTrackIdJsonPath = "$.tracks.items[0].id";
 
     private final CacheService cacheService;
+    private InProgressMapRepository inProgressMapRepository;
+    private UserRepository userRepository;
 
-    public SpotifyService(CacheService cacheService) {
+    public SpotifyService(CacheService cacheService, InProgressMapRepository inProgressMapRepository, UserRepository userRepository) {
         this.cacheService = cacheService;
+        this.inProgressMapRepository = inProgressMapRepository;
+        this.userRepository = userRepository;
     }
 
     public TokenDTO getJWTToken(String code) {
@@ -105,10 +112,17 @@ public class SpotifyService {
             restTemplate.exchange(url, HttpMethod.PUT, request, Void.class);
             map.clear();
         }
+
+        User user = this.userRepository.findByToken_AccessToken(accessToken);
+        InProgressMap inProgress = this.inProgressMapRepository.findById(user.getId()).get();
+        inProgress.setInProgress(false);
+        this.inProgressMapRepository.save(inProgress);
     }
 
     @Async
     public void requestSpotifyTrackIds(User user) {
+        this.inProgressMapRepository.save(new InProgressMap(user.getId(), true));
+
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + user.getToken().getAccessToken());
 
