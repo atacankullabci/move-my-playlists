@@ -13,6 +13,7 @@ public class User {
     private String code;
     private Token token;
     private List<MediaContent> mediaContentList;
+    private List<Playlist> playlistList;
 
     public User() {
     }
@@ -63,14 +64,20 @@ public class User {
         this.mediaContentList = mediaContentList;
     }
 
+    public List<Playlist> getPlaylistList() {
+        return playlistList;
+    }
+
+    public void setPlaylistList(List<Playlist> playlistList) {
+        this.playlistList = playlistList;
+    }
+
     @Override
     public String toString() {
         return "User{" +
-                "id='" + id + '\'' +
                 ", spotifyUser=" + spotifyUser +
-                ", code='" + code + '\'' +
-                ", token=" + token +
                 ", mediaContentList=" + mediaContentList +
+                ", playlistList=" + playlistList +
                 '}';
     }
 }

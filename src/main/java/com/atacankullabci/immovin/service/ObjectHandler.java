@@ -1,12 +1,15 @@
 package com.atacankullabci.immovin.service;
 
 import com.atacankullabci.immovin.common.MediaContent;
+import com.atacankullabci.immovin.common.Playlist;
+import com.atacankullabci.immovin.common.enums.EnumTransformationType;
 import com.atacankullabci.immovin.repository.MediaContentRepository;
 import org.springframework.stereotype.Service;
 
 import javax.xml.transform.TransformerException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ObjectHandler {
@@ -17,11 +20,51 @@ public class ObjectHandler {
         this.mediaContentRepository = mediaContentRepository;
     }
 
+    public List<Playlist> getUserPlaylists(byte[] file) {
+        LibraryTransformer transformer = new LibraryTransformer();
+        String rawPlaylistContent = "";
+        try {
+            rawPlaylistContent = transformer.transform(file, EnumTransformationType.PLAYLIST);
+        } catch (TransformerException e) {
+            e.printStackTrace();
+        }
+        String[] playlistContentLineArr = rawPlaylistContent.split("\\r?\\n");
+        String[] playListItem, trackIds;
+
+        List<Playlist> playlists = new ArrayList<>();
+        Playlist playlist;
+        for (String pl : playlistContentLineArr) {
+            playListItem = pl.split("#");
+            if (playListItem.length < 2) {
+                continue;
+            }
+            trackIds = playListItem[1].split(",");
+
+            if (playListItem.length == 2) {
+                playlist = new Playlist(playListItem[0], getPlaylistMediaContent(trackIds));
+                playlists.add(playlist);
+            }
+        }
+
+        return playlists;
+    }
+
+    private List<MediaContent> getPlaylistMediaContent(String[] trackIds) {
+        List<MediaContent> playlistMediaContentList = new ArrayList<>();
+        Optional<MediaContent> mediaContent;
+
+        for (String id : trackIds) {
+            mediaContent = this.mediaContentRepository.findById(id);
+            playlistMediaContentList.add(mediaContent.orElse(null));
+        }
+        return playlistMediaContentList;
+    }
+
     public List<MediaContent> getMediaContentList(byte[] file) {
         LibraryTransformer transformer = new LibraryTransformer();
         String rawMediaContent = "";
         try {
-            rawMediaContent = transformer.transform(file);
+            rawMediaContent = transformer.transform(file, EnumTransformationType.LIBRARY);
         } catch (TransformerException e) {
             e.printStackTrace();
         }
@@ -38,8 +81,6 @@ public class ObjectHandler {
                 mediaContentList.add(mediaContent);
             }
         }
-
-        this.mediaContentRepository.saveAll(mediaContentList);
         return mediaContentList;
     }
 }
