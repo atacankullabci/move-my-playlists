@@ -77,7 +77,6 @@ public class FileController {
 
     @PostMapping("/migrate")
     public ResponseEntity<Boolean> migrate(@RequestHeader("id") String id) {
-        System.out.println("migrate girdim");
         Optional<User> user = this.userRepository.findById(id);
         if (user.isPresent()) {
             this.spotifyService.requestSpotifyTrackIds(user.get());
