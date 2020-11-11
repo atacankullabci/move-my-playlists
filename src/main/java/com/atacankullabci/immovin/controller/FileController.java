@@ -7,6 +7,7 @@ import com.atacankullabci.immovin.common.User;
 import com.atacankullabci.immovin.repository.ClientRepository;
 import com.atacankullabci.immovin.repository.MediaContentRepository;
 import com.atacankullabci.immovin.repository.UserRepository;
+import com.atacankullabci.immovin.service.FileValidationService;
 import com.atacankullabci.immovin.service.LibraryTransformer;
 import com.atacankullabci.immovin.service.ObjectHandler;
 import com.atacankullabci.immovin.service.SpotifyService;
@@ -29,13 +30,15 @@ public class FileController {
     private ClientRepository clientRepository;
     private SpotifyService spotifyService;
     private UserRepository userRepository;
+    private FileValidationService fileValidationService;
     private MediaContentRepository mediaContentRepository;
 
-    public FileController(ObjectHandler objectHandler, ClientRepository clientRepository, UserRepository userRepository, SpotifyService spotifyService, MediaContentRepository mediaContentRepository) {
+    public FileController(ObjectHandler objectHandler, ClientRepository clientRepository, UserRepository userRepository, SpotifyService spotifyService, FileValidationService fileValidationService, MediaContentRepository mediaContentRepository) {
         this.objectHandler = objectHandler;
         this.clientRepository = clientRepository;
         this.userRepository = userRepository;
         this.spotifyService = spotifyService;
+        this.fileValidationService = fileValidationService;
         this.mediaContentRepository = mediaContentRepository;
     }
 
@@ -43,7 +46,9 @@ public class FileController {
     public ResponseEntity<?> mapper(@RequestParam("file") MultipartFile libraryFile,
                                     @RequestHeader("client-ip") String ip,
                                     @RequestHeader("id") String id,
-                                    @RequestHeader("parse-playlist") boolean option) {
+                                    @RequestHeader("parse-playlist") boolean option) throws Exception {
+        this.fileValidationService.validateLibraryFile(libraryFile);
+
         List<MediaContent> mediaContentList = null;
         List<Playlist> playlists = null;
         try {
