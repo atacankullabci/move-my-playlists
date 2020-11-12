@@ -166,41 +166,11 @@ public class SpotifyService {
         requestBody.clear();
     }
 
-    public void addTracksToSpotify(List<String> spotifyTrackIdList, String accessToken) {
+    public void addTracksToSpotify(List<String> spotifyTrackIdList, User user) {
         String url = "https://api.spotify.com/v1/me/tracks";
 
-        List<String> idList = new ArrayList<>();
+        spotifyBatchRequest(spotifyTrackIdList, url, user, 50, "ids", HttpMethod.PUT);
 
-        Map<String, List<String>> map = new HashMap<>();
-        HttpEntity<MultiValueMap<String, String>> request;
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        int length = spotifyTrackIdList.size();
-        int batch = length / 50;
-        for (int i = 0; i < batch; i++) {
-            for (int j = 0; j < 50; j++) {
-                idList.add(spotifyTrackIdList.get((i * 50) + j));
-            }
-            map.put("ids", idList);
-            request = new HttpEntity(map, headers);
-            restTemplate.exchange(url, HttpMethod.PUT, request, Void.class);
-            map.clear();
-            idList.clear();
-        }
-        idList.clear();
-        for (int i = 0; i < length - (batch * 50); i++) {
-            idList.add(spotifyTrackIdList.get((batch * 50) + i));
-            map.put("ids", idList);
-            request = new HttpEntity(map, headers);
-            restTemplate.exchange(url, HttpMethod.PUT, request, Void.class);
-            map.clear();
-        }
-
-        User user = this.userRepository.findByToken_AccessToken(accessToken);
         endUserProcess(user);
     }
 
@@ -216,7 +186,7 @@ public class SpotifyService {
                 request);
 
         addTracksToSpotify(spotifyTrackList.stream().map(TrackDTO::getId).collect(Collectors.toList()),
-                user.getToken().getAccessToken());
+                user);
     }
 
     private List<TrackDTO> getAllSpotifyTracksFromMediaContentList(List<MediaContent> mediaContentList,
