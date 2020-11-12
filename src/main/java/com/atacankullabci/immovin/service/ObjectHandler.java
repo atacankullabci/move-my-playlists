@@ -55,7 +55,11 @@ public class ObjectHandler {
 
         for (String id : trackIds) {
             mediaContent = this.mediaContentRepository.findById(id);
-            playlistMediaContentList.add(mediaContent.orElse(null));
+            if (mediaContent.isPresent()) {
+                playlistMediaContentList.add(mediaContent.get());
+            } else {
+                System.out.println("bu yok la : " + id);
+            }
         }
         return playlistMediaContentList;
     }
@@ -75,11 +79,9 @@ public class ObjectHandler {
         MediaContent mediaContent;
         for (String mediaContentLineElem : mediaContentLineArr) {
             mediaContentArr = mediaContentLineElem.split("#");
-            if (mediaContentArr.length == 5) {
-                mediaContent = new MediaContent(mediaContentArr[0], mediaContentArr[1],
-                        mediaContentArr[2], mediaContentArr[3], mediaContentArr[4]);
-                mediaContentList.add(mediaContent);
-            }
+            mediaContent = new MediaContent(mediaContentArr[0], mediaContentArr[1],
+                    mediaContentArr[2], mediaContentArr[3], mediaContentArr[4]);
+            mediaContentList.add(mediaContent);
         }
         return mediaContentList;
     }

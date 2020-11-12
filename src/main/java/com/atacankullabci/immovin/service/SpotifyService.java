@@ -6,6 +6,7 @@ import com.atacankullabci.immovin.common.Playlist;
 import com.atacankullabci.immovin.common.User;
 import com.atacankullabci.immovin.dto.PlaylistDTO;
 import com.atacankullabci.immovin.dto.TokenDTO;
+import com.atacankullabci.immovin.dto.TrackDTO;
 import com.atacankullabci.immovin.dto.UserDTO;
 import com.atacankullabci.immovin.repository.InProgressMapRepository;
 import com.atacankullabci.immovin.repository.UserRepository;
@@ -23,15 +24,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class SpotifyService {
 
-    private static final long serialVersionUID = 1L;
     static final Logger logger = LoggerFactory.getLogger(SpotifyService.class);
 
     private static final String baseTrackQueryStr = "https://api.spotify.com/v1/search?q=";
     private static final String getFirstTrackIdJsonPath = "$.tracks.items[0].id";
+    private static final String getFirstTrackURIJsonPath = "$.tracks.items[0].uri";
 
     private final CacheService cacheService;
     private InProgressMapRepository inProgressMapRepository;
@@ -80,134 +82,148 @@ public class SpotifyService {
         return response.getBody();
     }
 
-    public void addPlaylistsToSpotify(User user, List<String> playlistNames) {
-        List<Playlist> playlists = new ArrayList<>();
-        for (Playlist playlist : user.getPlaylists()) {
-            for (String name : playlistNames) {
-                if (playlist.getName().equals(name)) {
-                    playlists.add(playlist);
-                }
-            }
-        }
+    public void addPlaylistsToSpotify(User user, List<Playlist> playlists) {
+        startUserProcess(user);
 
-        List<PlaylistDTO> spotifyPlaylists = createPlaylists(playlistNames, user);
-
-        /*Map<String, List<String>> spotifyPlaylistMap = new HashMap<>();
-        HttpEntity request = getAuthHttpEntity(user);
+        Map<String, List<TrackDTO>> playlistMap = new HashMap<>();
         RestTemplate restTemplate = new RestTemplate();
+        HttpEntity httpEntity = getAuthHttpEntity(user);
 
         for (Playlist playlist : playlists) {
-            spotifyPlaylistMap.put(playlist.getName(),
-                    getAllTrackIdsFromMediaContentList(playlist.getMediaContents(), restTemplate, request));
-        }*/
+            playlistMap.put(createPlaylist(playlist.getName(), user),
+                    getAllSpotifyTracksFromMediaContentList(playlist.getMediaContents(), restTemplate, httpEntity));
+        }
+
+
+        for (String playlistId : playlistMap.keySet()) {
+            populatePlaylist(playlistId, playlistMap.get(playlistId), user);
+        }
+
+        endUserProcess(user);
     }
 
-    public List<PlaylistDTO> createPlaylists(List<String> playlistNames, User user) {
-        String createPlaylistUrl = "https://api.spotify.com/v1/users/" + user.getSpotifyUser().getUsername() + "/playlists";
-        HttpHeaders headers = getAuthHttpHeader(user);
-        HttpEntity<MultiValueMap<String, String>> httpEntity;
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<PlaylistDTO> response = null;
-
-        Map<String, String> requestBody = new HashMap<>();
-
-        List<PlaylistDTO> responsePlaylistDTO = new ArrayList<>();
-
-        for (String playListName : playlistNames) {
-            requestBody.put("name", playListName);
-            httpEntity = new HttpEntity(requestBody, headers);
-            response = restTemplate.exchange(createPlaylistUrl, HttpMethod.POST, httpEntity, PlaylistDTO.class);
-            responsePlaylistDTO.add(response.getBody());
-            requestBody.clear();
-        }
-
-        return responsePlaylistDTO;
-    }
-
-    public void addTracksToSpotify(List<String> spotifyTrackIdList, String accessToken) {
-        String url = "https://api.spotify.com/v1/me/tracks";
-
-        List<String> idList = new ArrayList<>();
-
-        Map<String, List<String>> map = new HashMap<>();
-        HttpEntity<MultiValueMap<String, String>> request;
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
-
-        RestTemplate restTemplate = new RestTemplate();
-
-        int length = spotifyTrackIdList.size();
-        int batch = length / 50;
-        for (int i = 0; i < batch; i++) {
-            for (int j = 0; j < 50; j++) {
-                idList.add(spotifyTrackIdList.get((i * 50) + j));
-            }
-            map.put("ids", idList);
-            request = new HttpEntity(map, headers);
-            restTemplate.exchange(url, HttpMethod.PUT, request, Void.class);
-            map.clear();
-            idList.clear();
-        }
-        idList.clear();
-        for (int i = 0; i < length - (batch * 50); i++) {
-            idList.add(spotifyTrackIdList.get((batch * 50) + i));
-            map.put("ids", idList);
-            request = new HttpEntity(map, headers);
-            restTemplate.exchange(url, HttpMethod.PUT, request, Void.class);
-            map.clear();
-        }
-
-        User user = this.userRepository.findByToken_AccessToken(accessToken);
+    private void endUserProcess(User user) {
         InProgressMap inProgress = this.inProgressMapRepository.findById(user.getId()).get();
         inProgress.setInProgress(false);
         this.inProgressMapRepository.save(inProgress);
     }
 
+    private void startUserProcess(User user) {
+        this.inProgressMapRepository.save(new InProgressMap(user.getId(), true));
+    }
+
+    public void populatePlaylist(String playlistId, List<TrackDTO> tracks, User user) {
+        String url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks";
+        List<String> trackUriList = tracks.stream().map(TrackDTO::getUri).collect(Collectors.toList());
+
+        spotifyBatchRequest(trackUriList, url, user, 100, "uris", HttpMethod.POST);
+    }
+
+    public String createPlaylist(String playListName, User user) {
+        String createPlaylistUrl = "https://api.spotify.com/v1/users/" + user.getSpotifyUser().getUsername() + "/playlists";
+        HttpHeaders headers = getAuthHttpHeader(user);
+        HttpEntity<MultiValueMap<String, String>> httpEntity;
+        RestTemplate restTemplate = new RestTemplate();
+
+        Map<String, String> requestBody = new HashMap<>();
+        requestBody.put("name", playListName);
+        httpEntity = new HttpEntity(requestBody, headers);
+        return restTemplate.exchange(createPlaylistUrl, HttpMethod.POST, httpEntity, PlaylistDTO.class).getBody().getId();
+    }
+
+    private void spotifyBatchRequest(List<String> list,
+                                     String requestUrl,
+                                     User user,
+                                     int batchSize,
+                                     String bodyParameterName,
+                                     HttpMethod httpMethod) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpEntity<MultiValueMap<String, String>> httpEntity;
+        HttpHeaders headers = getAuthHttpHeader(user);
+        Map<String, List<String>> requestBody = new HashMap<>();
+
+        int length = list.size();
+        int batch = length / batchSize;
+        List<String> requestBodyList = new ArrayList<>();
+
+        for (int i = 0; i < batch; i++) {
+            for (int j = 0; j < batchSize; j++) {
+                requestBodyList.add(list.get((i * batchSize) + j));
+            }
+            requestBody.put(bodyParameterName, requestBodyList);
+            httpEntity = new HttpEntity(requestBody, headers);
+            restTemplate.exchange(requestUrl, httpMethod, httpEntity, Void.class);
+            requestBody.clear();
+            requestBodyList.clear();
+        }
+        requestBodyList.clear();
+        for (int i = 0; i < length - (batch * batchSize); i++) {
+            requestBodyList.add(list.get((batch * batchSize) + i));
+        }
+        requestBody.put(bodyParameterName, requestBodyList);
+        httpEntity = new HttpEntity(requestBody, headers);
+        restTemplate.exchange(requestUrl, httpMethod, httpEntity, Void.class);
+        requestBody.clear();
+    }
+
+    public void addTracksToSpotify(List<String> spotifyTrackIdList, User user) {
+        String url = "https://api.spotify.com/v1/me/tracks";
+
+        spotifyBatchRequest(spotifyTrackIdList, url, user, 50, "ids", HttpMethod.PUT);
+
+        endUserProcess(user);
+    }
+
     @Async
     public void requestSpotifyTrackIds(User user) {
-        this.inProgressMapRepository.save(new InProgressMap(user.getId(), true));
+        startUserProcess(user);
 
         HttpEntity request = getAuthHttpEntity(user);
         RestTemplate restTemplate = new RestTemplate();
 
-        List<String> trackIdList = getAllTrackIdsFromMediaContentList(user.getMediaContentList(), restTemplate, request);
+        List<TrackDTO> spotifyTrackList = getAllSpotifyTracksFromMediaContentList(user.getMediaContentList(),
+                restTemplate,
+                request);
 
-        addTracksToSpotify(trackIdList, user.getToken().getAccessToken());
+        addTracksToSpotify(spotifyTrackList.stream().map(TrackDTO::getId).collect(Collectors.toList()),
+                user);
     }
 
-    private List<String> getAllTrackIdsFromMediaContentList(List<MediaContent> mediaContentList,
-                                                            RestTemplate restTemplate,
-                                                            HttpEntity request) {
+    private List<TrackDTO> getAllSpotifyTracksFromMediaContentList(List<MediaContent> mediaContentList,
+                                                                   RestTemplate restTemplate,
+                                                                   HttpEntity request) {
         ResponseEntity<String> response;
-        String url, spotifyId;
-        List<String> trackIdList = new ArrayList<>();
+        TrackDTO spotifyTrack;
+        String url;
+        List<TrackDTO> spotifyTrackList = new ArrayList<>();
         for (MediaContent mediaContent : mediaContentList) {
-            url = getTrackQuery(mediaContent);
-            logger.info("Requested URL : " + url);
-            response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
-            if (response.getBody().getBytes().length > 1000) {
-                spotifyId = getIdFromResponse(response.getBody());
-                saveSpotifyTrackId(trackIdList, spotifyId, mediaContent);
-            } else {
-                url = getTrackQueryWithoutAlbum(mediaContent);
+            if (mediaContent != null) {
+                url = getTrackQuery(mediaContent);
+                logger.info("Requested URL : " + url);
                 response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
                 if (response.getBody().getBytes().length > 1000) {
-                    spotifyId = getIdFromResponse(response.getBody());
-                    saveSpotifyTrackId(trackIdList, spotifyId, mediaContent);
+                    spotifyTrack = getTrackFromResponse(response.getBody());
+                    spotifyTrackList.add(spotifyTrack);
                 } else {
-                    url = getTrackWithOnlyTrackName(mediaContent);
+                    url = getTrackQueryWithoutAlbum(mediaContent);
                     response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
                     if (response.getBody().getBytes().length > 1000) {
-                        spotifyId = getIdFromResponse(response.getBody());
-                        saveSpotifyTrackId(trackIdList, spotifyId, mediaContent);
+                        spotifyTrack = getTrackFromResponse(response.getBody());
+                        spotifyTrackList.add(spotifyTrack);
                     } else {
-                        //unmatchedMediaContentList.add(mediaContent);
+                        url = getTrackWithOnlyTrackName(mediaContent);
+                        response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
+                        if (response.getBody().getBytes().length > 1000) {
+                            spotifyTrack = getTrackFromResponse(response.getBody());
+                            spotifyTrackList.add(spotifyTrack);
+                        } else {
+                            //unmatchedMediaContentList.add(mediaContent);
+                        }
                     }
                 }
             }
         }
-        return trackIdList;
+        return spotifyTrackList;
     }
 
     private HttpEntity getAuthHttpEntity(User user) {
@@ -222,27 +238,24 @@ public class SpotifyService {
         return headers;
     }
 
-    private void saveSpotifyTrackId(List<String> trackIdList, String spotifyId, MediaContent mediaContent) {
-        trackIdList.add(spotifyId);
-        cacheService.put(mediaContent.getTrackId(), spotifyId);
-    }
-
-    private static String getIdFromResponse(String response) {
-        return JsonPath.read(response, getFirstTrackIdJsonPath);
+    private static TrackDTO getTrackFromResponse(String response) {
+        return new TrackDTO(JsonPath.read(response, getFirstTrackIdJsonPath),
+                JsonPath.read(response, getFirstTrackURIJsonPath));
     }
 
     private static String getTrackWithOnlyTrackName(MediaContent mediaContent) {
-        return baseTrackQueryStr + mediaContent.getTrackName() + "&type=track";
+        return baseTrackQueryStr + mediaContent.getTrackName().trim() + "&type=track";
     }
 
     private static String getTrackQueryWithoutAlbum(MediaContent mediaContent) {
-        return baseTrackQueryStr + mediaContent.getArtistName() + " "
+        return baseTrackQueryStr + mediaContent.getArtistName().trim()
                 + mediaContent.getTrackName() + "&type=track";
     }
 
     private static String getTrackQuery(MediaContent mediaContent) {
-        return baseTrackQueryStr + mediaContent.getArtistName() + " "
-                + mediaContent.getTrackName() + " "
-                + mediaContent.getAlbumName() + "&type=track";
+        return baseTrackQueryStr + mediaContent.getArtistName().trim()
+                + mediaContent.getTrackName()
+                + mediaContent.getAlbumName()
+                + "&type=track";
     }
 }
