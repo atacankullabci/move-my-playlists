@@ -28,10 +28,12 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     // All other exceptions are handled below 
-    @ExceptionHandler(Exception.class)
+    /*@ExceptionHandler(Exception.class)
     protected ResponseEntity<Object> handleEntityNotFound() {
         return buildResponseEntity(new ApiErrorResponseBody(HttpStatus.BAD_REQUEST, "Bad request"));
     }
+
+     */
 
     @ExceptionHandler(InvalidFileException.class)
     protected ResponseEntity<Object> handleInvalidFileException(InvalidFileException exception) {

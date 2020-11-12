@@ -85,12 +85,12 @@ public class FileController {
     }
 
     @PostMapping("/migrate/playlists")
-    public ResponseEntity<Boolean> migratePlaylist(@RequestHeader("id") String id,
-                                                   @RequestBody List<String> playlistNames) {
+    public ResponseEntity<List<Playlist>> migratePlaylist(@RequestHeader("id") String id,
+                                                          @RequestBody List<Playlist> playlists) {
         Optional<User> user = this.userRepository.findById(id);
         if (user.isPresent()) {
-            this.spotifyService.addPlaylistsToSpotify(user.get(), playlistNames);
+            this.spotifyService.addPlaylistsToSpotify(user.get(), playlists);
         }
-        return ResponseEntity.ok(true);
+        return ResponseEntity.ok(playlists);
     }
 }
