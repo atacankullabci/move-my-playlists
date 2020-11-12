@@ -65,7 +65,7 @@ public class FileController {
             Optional<User> user = this.userRepository.findById(id);
             if (user.isPresent()) {
                 user.get().setMediaContentList(mediaContentList);
-                user.get().setPlaylistList(playlists);
+                user.get().setPlaylists(playlists);
                 this.userRepository.save(user.get());
             }
             this.clientRepository.save(new Client(ip, Instant.now()));
@@ -75,12 +75,22 @@ public class FileController {
         return ResponseEntity.ok().body(Arrays.asList(mediaContentList, playlists));
     }
 
-    @PostMapping("/migrate")
+    @PostMapping("/migrate/tracks")
     public ResponseEntity<Boolean> migrate(@RequestHeader("id") String id) {
         Optional<User> user = this.userRepository.findById(id);
         if (user.isPresent()) {
             this.spotifyService.requestSpotifyTrackIds(user.get());
         }
         return ResponseEntity.ok().body(true);
+    }
+
+    @PostMapping("/migrate/playlists")
+    public ResponseEntity<Boolean> migratePlaylist(@RequestHeader("id") String id,
+                                                   @RequestBody List<String> playlistNames) {
+        Optional<User> user = this.userRepository.findById(id);
+        if (user.isPresent()) {
+            this.spotifyService.addPlaylistsToSpotify(user.get(), playlistNames);
+        }
+        return ResponseEntity.ok(true);
     }
 }

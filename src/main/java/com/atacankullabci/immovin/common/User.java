@@ -13,7 +13,7 @@ public class User {
     private String code;
     private Token token;
     private List<MediaContent> mediaContentList;
-    private List<Playlist> playlistList;
+    private List<Playlist> playlists;
 
     public User() {
     }
@@ -64,12 +64,12 @@ public class User {
         this.mediaContentList = mediaContentList;
     }
 
-    public List<Playlist> getPlaylistList() {
-        return playlistList;
+    public List<Playlist> getPlaylists() {
+        return playlists;
     }
 
-    public void setPlaylistList(List<Playlist> playlistList) {
-        this.playlistList = playlistList;
+    public void setPlaylists(List<Playlist> playlists) {
+        this.playlists = playlists;
     }
 
     @Override
@@ -77,7 +77,7 @@ public class User {
         return "User{" +
                 ", spotifyUser=" + spotifyUser +
                 ", mediaContentList=" + mediaContentList +
-                ", playlistList=" + playlistList +
+                ", playlists=" + playlists +
                 '}';
     }
 }
