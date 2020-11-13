@@ -24,9 +24,10 @@ public class MapperService {
             userImage = new SpotifyUserImage();
         }
 
-        SpotifyUser spotifyUser = new SpotifyUser(userDTO.getDisplay_name(), userDTO.getExternal_urls().getSpotify(),
+        SpotifyUser spotifyUser = new SpotifyUser(userDTO.getId(), userDTO.getDisplay_name(),
+                userDTO.getExternal_urls().getSpotify(),
                 userImage);
 
-        return new User(spotifyUser, null, token);
+        return new User(spotifyUser, token);
     }
 }

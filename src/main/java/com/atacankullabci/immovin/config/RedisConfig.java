@@ -13,10 +13,13 @@ public class RedisConfig {
     @Value("${spring.data.redis.password}")
     private String redisPassword;
 
+    @Value("${spring.data.redis.host}")
+    private String redisHost;
+
     @Bean
     RedisStandaloneConfiguration redisStandaloneConfiguration() {
         RedisStandaloneConfiguration redisStandaloneConfiguration =
-                new RedisStandaloneConfiguration("localhost", 6379);
+                new RedisStandaloneConfiguration(redisHost, 6379);
         redisStandaloneConfiguration.setPassword(RedisPassword.of(redisPassword));
         return redisStandaloneConfiguration;
     }

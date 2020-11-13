@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 
 public class SpotifyUser {
     @Id
+    private String id;
     private String username;
     private String externalUrl;
     private SpotifyUserImage userImage;
@@ -11,10 +12,19 @@ public class SpotifyUser {
     public SpotifyUser() {
     }
 
-    public SpotifyUser(String username, String externalUrl, SpotifyUserImage userImage) {
+    public SpotifyUser(String id, String username, String externalUrl, SpotifyUserImage userImage) {
+        this.id = id;
         this.username = username;
         this.externalUrl = externalUrl;
         this.userImage = userImage;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getUsername() {
@@ -44,7 +54,8 @@ public class SpotifyUser {
     @Override
     public String toString() {
         return "SpotifyUser{" +
-                "username='" + username + '\'' +
+                "id='" + id + '\'' +
+                ", username='" + username + '\'' +
                 ", externalUrl='" + externalUrl + '\'' +
                 ", userImage=" + userImage +
                 '}';
