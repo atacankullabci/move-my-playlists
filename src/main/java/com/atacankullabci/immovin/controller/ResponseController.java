@@ -31,7 +31,6 @@ public class ResponseController {
         try {
             Token token = this.mapperService.mapToken(this.spotifyService.getJWTToken(code));
             User user = this.mapperService.mapUser(this.spotifyService.getUserInfo(token.getAccessToken()), token);
-            user.setCode(code);
 
             this.userRepository.save(user);
 

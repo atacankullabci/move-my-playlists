@@ -94,7 +94,6 @@ public class SpotifyService {
                     getAllSpotifyTracksFromMediaContentList(playlist.getMediaContents(), restTemplate, httpEntity));
         }
 
-
         for (String playlistId : playlistMap.keySet()) {
             populatePlaylist(playlistId, playlistMap.get(playlistId), user);
         }
@@ -120,7 +119,7 @@ public class SpotifyService {
     }
 
     public String createPlaylist(String playListName, User user) {
-        String createPlaylistUrl = "https://api.spotify.com/v1/users/" + user.getSpotifyUser().getUsername() + "/playlists";
+        String createPlaylistUrl = "https://api.spotify.com/v1/users/" + user.getSpotifyUser().getId() + "/playlists";
         HttpHeaders headers = getAuthHttpHeader(user);
         HttpEntity<MultiValueMap<String, String>> httpEntity;
         RestTemplate restTemplate = new RestTemplate();

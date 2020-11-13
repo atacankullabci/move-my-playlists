@@ -10,7 +10,6 @@ public class User {
     @Id
     private String id;
     private SpotifyUser spotifyUser;
-    private String code;
     private Token token;
     private List<MediaContent> mediaContentList;
     private List<Playlist> playlists;
@@ -18,9 +17,8 @@ public class User {
     public User() {
     }
 
-    public User(SpotifyUser spotifyUser, String code, Token token) {
+    public User(SpotifyUser spotifyUser, Token token) {
         this.spotifyUser = spotifyUser;
-        this.code = code;
         this.token = token;
     }
 
@@ -38,14 +36,6 @@ public class User {
 
     public void setSpotifyUser(SpotifyUser spotifyUser) {
         this.spotifyUser = spotifyUser;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
     }
 
     public Token getToken() {
@@ -75,7 +65,9 @@ public class User {
     @Override
     public String toString() {
         return "User{" +
+                "id='" + id + '\'' +
                 ", spotifyUser=" + spotifyUser +
+                ", token=" + token +
                 ", mediaContentList=" + mediaContentList +
                 ", playlists=" + playlists +
                 '}';

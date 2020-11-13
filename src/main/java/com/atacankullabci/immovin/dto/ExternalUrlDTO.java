@@ -1,12 +1,12 @@
 package com.atacankullabci.immovin.dto;
 
-public class ExternalUrl {
+public class ExternalUrlDTO {
     private String spotify;
 
-    public ExternalUrl() {
+    public ExternalUrlDTO() {
     }
 
-    public ExternalUrl(String spotify) {
+    public ExternalUrlDTO(String spotify) {
         this.spotify = spotify;
     }
 

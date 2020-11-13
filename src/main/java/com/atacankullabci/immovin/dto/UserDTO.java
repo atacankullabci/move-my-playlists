@@ -3,17 +3,27 @@ package com.atacankullabci.immovin.dto;
 import java.util.Arrays;
 
 public class UserDTO {
+    private String id;
     private String display_name;
-    private ExternalUrl external_urls;
+    private ExternalUrlDTO external_urls;
     private ImageDTO[] images;
 
     public UserDTO() {
     }
 
-    public UserDTO(String display_name, ExternalUrl external_urls, ImageDTO[] images) {
+    public UserDTO(String id, String display_name, ExternalUrlDTO external_urls, ImageDTO[] images) {
+        this.id = id;
         this.display_name = display_name;
         this.external_urls = external_urls;
         this.images = images;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getDisplay_name() {
@@ -24,11 +34,11 @@ public class UserDTO {
         this.display_name = display_name;
     }
 
-    public ExternalUrl getExternal_urls() {
+    public ExternalUrlDTO getExternal_urls() {
         return external_urls;
     }
 
-    public void setExternal_urls(ExternalUrl external_urls) {
+    public void setExternal_urls(ExternalUrlDTO external_urls) {
         this.external_urls = external_urls;
     }
 
@@ -43,7 +53,8 @@ public class UserDTO {
     @Override
     public String toString() {
         return "UserDTO{" +
-                "display_name='" + display_name + '\'' +
+                "id='" + id + '\'' +
+                ", display_name='" + display_name + '\'' +
                 ", external_urls=" + external_urls +
                 ", images=" + Arrays.toString(images) +
                 '}';
