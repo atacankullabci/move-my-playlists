@@ -79,6 +79,7 @@ public class FileController {
     public ResponseEntity<Boolean> migrate(@RequestHeader("id") String id) {
         Optional<User> user = this.userRepository.findById(id);
         if (user.isPresent()) {
+            spotifyService.checkUserAuthorization(user.get());
             this.spotifyService.requestSpotifyTrackIds(user.get());
         }
         return ResponseEntity.ok().body(true);
@@ -89,6 +90,7 @@ public class FileController {
                                                           @RequestBody List<Playlist> playlists) {
         Optional<User> user = this.userRepository.findById(id);
         if (user.isPresent()) {
+            spotifyService.checkUserAuthorization(user.get());
             this.spotifyService.addPlaylistsToSpotify(user.get(), playlists);
         }
         return ResponseEntity.ok(playlists);
