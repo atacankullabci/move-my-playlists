@@ -18,12 +18,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -68,6 +66,30 @@ public class SpotifyService {
         return response.getBody();
     }
 
+    public void refreshToken(User user) {
+        String url = "https://accounts.spotify.com/api/token";
+        HttpEntity<MultiValueMap<String, String>> request;
+        ResponseEntity<TokenDTO> response = null;
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        String authStr = "b5ead0205230451d877d487a856a30a9:3e18969a0fc94531b04357edc447461f";
+        headers.add("Authorization", "Basic " + Base64.getEncoder().encodeToString(authStr.getBytes()));
+
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+        map.add("grant_type", "refresh_token");
+        map.add("refresh_token", user.getToken().getRefreshToken());
+
+        request = new HttpEntity<>(map, headers);
+        response = restTemplate
+                .exchange(url, HttpMethod.POST, request, TokenDTO.class);
+
+        user.getToken().setAccessToken(response.getBody().getAccess_token());
+        this.userRepository.save(user);
+    }
+
     public UserDTO getUserInfo(String accessToken) {
         String url = "https://api.spotify.com/v1/me";
         ResponseEntity<UserDTO> response = null;
@@ -80,6 +102,15 @@ public class SpotifyService {
 
         response = restTemplate.exchange(url, HttpMethod.GET, request, UserDTO.class);
         return response.getBody();
+    }
+
+    public void checkUserAuthorization(User user) {
+        try {
+            getUserInfo(user.getToken().getAccessToken());
+        } catch (HttpClientErrorException exception) {
+            logger.info("Refreshing user token");
+            refreshToken(user);
+        }
     }
 
     public void addPlaylistsToSpotify(User user, List<Playlist> playlists) {
