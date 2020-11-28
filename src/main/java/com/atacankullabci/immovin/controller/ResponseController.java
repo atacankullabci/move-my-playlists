@@ -17,7 +17,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("callback")
-@CrossOrigin(origins = {"http://imovin.club", "https://imovin.club", "http://localhost:4200"})
+@CrossOrigin(origins = {"http://movemyplaylists.com", "https://movemyplaylists.com", "http://localhost:4200"})
 public class ResponseController {
 
     static final Logger logger = LoggerFactory.getLogger(ResponseController.class);
@@ -50,7 +50,7 @@ public class ResponseController {
                 try {
                     stateMap.setValidity(false);
                     this.stateMapRepository.save(stateMap);
-                    response.sendRedirect("https://imovin.club/?error=access-denied");
+                    response.sendRedirect("https://movemyplaylists.com/?error=access-denied");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -68,7 +68,7 @@ public class ResponseController {
 
                 stateMap.setValidity(false);
                 this.stateMapRepository.save(stateMap);
-                response.sendRedirect("https://imovin.club/?id=" + user.getId());
+                response.sendRedirect("https://movemyplaylists.com/?id=" + user.getId());
             } catch (IOException e) {
                 e.printStackTrace();
             }
