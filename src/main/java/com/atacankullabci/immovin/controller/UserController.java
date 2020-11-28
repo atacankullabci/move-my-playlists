@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = {"http://imovin.club", "https://imovin.club", "http://localhost:4200"})
+@CrossOrigin(origins = {"http://movemyplaylists.com", "https://movemyplaylists.com", "http://localhost:4200"})
 public class UserController {
 
     private final UserRepository userRepository;

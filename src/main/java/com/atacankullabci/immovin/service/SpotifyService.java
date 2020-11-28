@@ -55,7 +55,7 @@ public class SpotifyService {
 
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "authorization_code");
-        map.add("redirect_uri", "http://imovin.club/callback/");
+        map.add("redirect_uri", "http://movemyplaylists.com/callback/");
         map.add("client_id", "b5ead0205230451d877d487a856a30a9");
         map.add("client_secret", "3e18969a0fc94531b04357edc447461f");
         map.add("code", code);
