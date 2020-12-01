@@ -57,8 +57,6 @@ public class ObjectHandler {
             mediaContent = this.mediaContentRepository.findById(id);
             if (mediaContent.isPresent()) {
                 playlistMediaContentList.add(mediaContent.get());
-            } else {
-                System.out.println("bu yok la : " + id);
             }
         }
         return playlistMediaContentList;

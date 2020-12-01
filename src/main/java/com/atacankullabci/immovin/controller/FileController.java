@@ -53,7 +53,8 @@ public class FileController {
         List<Playlist> playlists = null;
         try {
             mediaContentList = objectHandler.getMediaContentList(libraryFile.getBytes());
-            // Make async operation for this method if possible
+
+            // TODO: Try async operation for this method if possible
             mediaContentList = LibraryTransformer.tameMediaContent(mediaContentList);
 
             this.mediaContentRepository.saveAll(mediaContentList);
