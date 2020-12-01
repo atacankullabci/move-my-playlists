@@ -3,7 +3,7 @@
 
 - A web app to move your whole iTunes library to Spotify with no registration
 
-- You can visit a live web app -> [Move My Playlists](movemyplaylists.com)
+- You can visit a live web app -> [Move My Playlists](https://movemyplaylists.com)
 
 ![iTunes Playlist](showcase/iTunesPlaylist.png)
 
