@@ -13,6 +13,7 @@ import com.atacankullabci.immovin.repository.UserRepository;
 import com.jayway.jsonpath.JsonPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,12 @@ import java.util.stream.Collectors;
 public class SpotifyService {
 
     static final Logger logger = LoggerFactory.getLogger(SpotifyService.class);
+
+    @Value("${spotify.clientId}")
+    private String spotifyClientId;
+
+    @Value("${spotify.clientSecret}")
+    private String spotifyClientSecret;
 
     private static final String baseTrackQueryStr = "https://api.spotify.com/v1/search?q=";
     private static final String getFirstTrackIdJsonPath = "$.tracks.items[0].id";
@@ -56,8 +63,8 @@ public class SpotifyService {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("grant_type", "authorization_code");
         map.add("redirect_uri", "http://movemyplaylists.com/callback/");
-        map.add("client_id", "b5ead0205230451d877d487a856a30a9");
-        map.add("client_secret", "3e18969a0fc94531b04357edc447461f");
+        map.add("client_id", spotifyClientId);
+        map.add("client_secret", spotifyClientSecret);
         map.add("code", code);
 
         request = new HttpEntity<>(map, headers);
@@ -75,7 +82,7 @@ public class SpotifyService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        String authStr = "b5ead0205230451d877d487a856a30a9:3e18969a0fc94531b04357edc447461f";
+        String authStr = spotifyClientId + ":" + spotifyClientSecret;
         headers.add("Authorization", "Basic " + Base64.getEncoder().encodeToString(authStr.getBytes()));
 
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
