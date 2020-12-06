@@ -88,7 +88,7 @@ public class FileController {
 
     @PostMapping("/migrate/playlists")
     public ResponseEntity<List<Playlist>> migratePlaylist(@RequestHeader("id") String id,
-                                                          @RequestBody List<Playlist> playlists) {
+                                                          @RequestBody List<Playlist> playlists) throws Exception {
         Optional<User> user = this.userRepository.findById(id);
         if (user.isPresent()) {
             spotifyService.checkUserAuthorization(user.get());

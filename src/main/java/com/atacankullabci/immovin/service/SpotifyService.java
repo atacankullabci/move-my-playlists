@@ -119,23 +119,27 @@ public class SpotifyService {
         }
     }
 
-    public void addPlaylistsToSpotify(User user, List<Playlist> playlists) {
+    public void addPlaylistsToSpotify(User user, List<Playlist> playlists) throws Exception {
         startUserProcess(user);
 
-        Map<String, List<TrackDTO>> playlistMap = new HashMap<>();
-        RestTemplate restTemplate = new RestTemplate();
-        HttpEntity httpEntity = getAuthHttpEntity(user);
+        try {
+            Map<String, List<TrackDTO>> playlistMap = new HashMap<>();
+            RestTemplate restTemplate = new RestTemplate();
+            HttpEntity httpEntity = getAuthHttpEntity(user);
 
-        for (Playlist playlist : playlists) {
-            playlistMap.put(createPlaylist(playlist.getName(), user),
-                    getAllSpotifyTracksFromMediaContentList(playlist.getMediaContents(), restTemplate, httpEntity));
+            for (Playlist playlist : playlists) {
+                playlistMap.put(createPlaylist(playlist.getName(), user),
+                        getAllSpotifyTracksFromMediaContentList(playlist.getMediaContents(), restTemplate, httpEntity));
+            }
+
+            for (String playlistId : playlistMap.keySet()) {
+                populatePlaylist(playlistId, playlistMap.get(playlistId), user);
+            }
+        } catch (Exception ex) {
+            throw new Exception();
+        } finally {
+            endUserProcess(user);
         }
-
-        for (String playlistId : playlistMap.keySet()) {
-            populatePlaylist(playlistId, playlistMap.get(playlistId), user);
-        }
-
-        endUserProcess(user);
     }
 
     private void endUserProcess(User user) {
