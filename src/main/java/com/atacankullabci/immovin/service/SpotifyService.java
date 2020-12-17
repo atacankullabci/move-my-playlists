@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
@@ -124,12 +125,19 @@ public class SpotifyService {
 
         try {
             Map<String, List<TrackDTO>> playlistMap = new HashMap<>();
+            String newPlaylistId;
+            List<TrackDTO> trackList;
+
             RestTemplate restTemplate = new RestTemplate();
             HttpEntity httpEntity = getAuthHttpEntity(user);
 
+
             for (Playlist playlist : playlists) {
-                playlistMap.put(createPlaylist(playlist.getName(), user),
-                        getAllSpotifyTracksFromMediaContentList(playlist.getMediaContents(), restTemplate, httpEntity));
+                newPlaylistId = createPlaylist(playlist.getName(), user);
+                trackList = getAllSpotifyTracksFromMediaContentList(playlist.getMediaContents(),
+                        restTemplate,
+                        httpEntity);
+                playlistMap.put(newPlaylistId, trackList);
             }
 
             for (String playlistId : playlistMap.keySet()) {
@@ -156,7 +164,9 @@ public class SpotifyService {
         String url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks";
         List<String> trackUriList = tracks.stream().map(TrackDTO::getUri).collect(Collectors.toList());
 
-        spotifyBatchRequest(trackUriList, url, user, 100, "uris", HttpMethod.POST);
+        if (!CollectionUtils.isEmpty(trackUriList)) {
+            spotifyBatchRequest(trackUriList, url, user, 100, "uris", HttpMethod.POST);
+        }
     }
 
     public String createPlaylist(String playListName, User user) {
@@ -192,7 +202,11 @@ public class SpotifyService {
             }
             requestBody.put(bodyParameterName, requestBodyList);
             httpEntity = new HttpEntity(requestBody, headers);
-            restTemplate.exchange(requestUrl, httpMethod, httpEntity, Void.class);
+            try {
+                restTemplate.exchange(requestUrl, httpMethod, httpEntity, Void.class);
+            } catch (Exception e) {
+                logger.info("There was a problem in batch request in url : " + requestUrl);
+            }
             requestBody.clear();
             requestBodyList.clear();
         }
@@ -202,7 +216,11 @@ public class SpotifyService {
         }
         requestBody.put(bodyParameterName, requestBodyList);
         httpEntity = new HttpEntity(requestBody, headers);
-        restTemplate.exchange(requestUrl, httpMethod, httpEntity, Void.class);
+        try {
+            restTemplate.exchange(requestUrl, httpMethod, httpEntity, Void.class);
+        } catch (Exception e) {
+            logger.info("There was a problem in batch request in url : " + requestUrl);
+        }
         requestBody.clear();
     }
 
@@ -256,7 +274,7 @@ public class SpotifyService {
                             spotifyTrack = getTrackFromResponse(response.getBody());
                             spotifyTrackList.add(spotifyTrack);
                         } else {
-                            //unmatchedMediaContentList.add(mediaContent);
+                            logger.info("Unmeatched media content : " + mediaContent);
                         }
                     }
                 }
