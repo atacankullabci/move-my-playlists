@@ -4,6 +4,8 @@ import com.atacankullabci.immovin.common.MediaContent;
 import com.atacankullabci.immovin.common.Playlist;
 import com.atacankullabci.immovin.common.enums.EnumTransformationType;
 import com.atacankullabci.immovin.repository.MediaContentRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.xml.transform.TransformerException;
@@ -14,6 +16,8 @@ import java.util.Optional;
 @Service
 public class ObjectHandler {
 
+    static final Logger logger = LoggerFactory.getLogger(ObjectHandler.class);
+
     private final MediaContentRepository mediaContentRepository;
 
     public ObjectHandler(MediaContentRepository mediaContentRepository) {
@@ -21,6 +25,8 @@ public class ObjectHandler {
     }
 
     public List<Playlist> getUserPlaylists(byte[] file) {
+        logger.info("Playlists xml transformation started");
+
         LibraryTransformer transformer = new LibraryTransformer();
         String rawPlaylistContent = "";
         try {
@@ -63,6 +69,8 @@ public class ObjectHandler {
     }
 
     public List<MediaContent> getMediaContentList(byte[] file) {
+        logger.info("Library xml transformation started");
+
         LibraryTransformer transformer = new LibraryTransformer();
         String rawMediaContent = "";
         try {
