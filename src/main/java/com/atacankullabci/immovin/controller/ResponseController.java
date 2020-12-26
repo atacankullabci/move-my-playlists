@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Optional;
 
 @RestController
@@ -63,6 +64,7 @@ public class ResponseController {
             try {
                 Token token = this.mapperService.mapToken(this.spotifyService.getJWTToken(code));
                 User user = this.mapperService.mapUser(this.spotifyService.getUserInfo(token.getAccessToken()), token);
+                user.setRegisterDate(Instant.now());
 
                 this.userRepository.save(user);
 

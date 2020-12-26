@@ -1,11 +1,10 @@
 package com.atacankullabci.immovin.controller;
 
-import com.atacankullabci.immovin.common.Client;
 import com.atacankullabci.immovin.common.MediaContent;
 import com.atacankullabci.immovin.common.Playlist;
 import com.atacankullabci.immovin.common.User;
-import com.atacankullabci.immovin.repository.ClientRepository;
 import com.atacankullabci.immovin.repository.MediaContentRepository;
+import com.atacankullabci.immovin.repository.PlaylistRepository;
 import com.atacankullabci.immovin.repository.UserRepository;
 import com.atacankullabci.immovin.service.FileValidationService;
 import com.atacankullabci.immovin.service.LibraryTransformer;
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -27,30 +25,31 @@ import java.util.Optional;
 public class FileController {
 
     private final ObjectHandler objectHandler;
-    private ClientRepository clientRepository;
     private SpotifyService spotifyService;
     private UserRepository userRepository;
     private FileValidationService fileValidationService;
     private MediaContentRepository mediaContentRepository;
+    private PlaylistRepository playlistRepository;
 
-    public FileController(ObjectHandler objectHandler, ClientRepository clientRepository, UserRepository userRepository, SpotifyService spotifyService, FileValidationService fileValidationService, MediaContentRepository mediaContentRepository) {
+    public FileController(ObjectHandler objectHandler, UserRepository userRepository, SpotifyService spotifyService, FileValidationService fileValidationService, MediaContentRepository mediaContentRepository, PlaylistRepository playlistRepository) {
         this.objectHandler = objectHandler;
-        this.clientRepository = clientRepository;
         this.userRepository = userRepository;
         this.spotifyService = spotifyService;
         this.fileValidationService = fileValidationService;
         this.mediaContentRepository = mediaContentRepository;
+        this.playlistRepository = playlistRepository;
     }
 
     @PostMapping(value = "/map", consumes = "multipart/form-data")
     public ResponseEntity<?> mapper(@RequestParam("file") MultipartFile libraryFile,
-                                    @RequestHeader("client-ip") String ip,
                                     @RequestHeader("id") String id,
                                     @RequestHeader("parse-playlist") boolean option) throws Exception {
         this.fileValidationService.validateLibraryFile(libraryFile);
 
         List<MediaContent> mediaContentList = null;
         List<Playlist> playlists = null;
+        Optional<User> optionalUser = this.userRepository.findById(id);
+
         try {
             mediaContentList = objectHandler.getMediaContentList(libraryFile.getBytes());
 
@@ -59,17 +58,15 @@ public class FileController {
 
             this.mediaContentRepository.saveAll(mediaContentList);
 
+            User user = optionalUser.orElse(null);
+            user.setMediaContentList(mediaContentList);
+            this.userRepository.save(user);
+
             if (option) {
-                playlists = objectHandler.getUserPlaylists(libraryFile.getBytes());
+                playlists = objectHandler.getUserPlaylists(libraryFile.getBytes(), user.getId());
+                this.playlistRepository.saveAll(playlists);
             }
 
-            Optional<User> user = this.userRepository.findById(id);
-            if (user.isPresent()) {
-                user.get().setMediaContentList(mediaContentList);
-                user.get().setPlaylists(playlists);
-                this.userRepository.save(user.get());
-            }
-            this.clientRepository.save(new Client(ip, Instant.now()));
         } catch (IOException e) {
             e.printStackTrace();
         }

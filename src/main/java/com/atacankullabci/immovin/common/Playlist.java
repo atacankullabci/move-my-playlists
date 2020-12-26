@@ -1,17 +1,41 @@
 package com.atacankullabci.immovin.common;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.util.List;
 
+@Document
 public class Playlist {
+    @Id
+    private String id;
+    private String userId;
     private String name;
     private List<MediaContent> mediaContents;
 
     public Playlist() {
     }
 
-    public Playlist(String name, List<MediaContent> mediaContents) {
+    public Playlist(String userId, String name, List<MediaContent> mediaContents) {
+        this.userId = userId;
         this.name = name;
         this.mediaContents = mediaContents;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public String getName() {
@@ -33,7 +57,9 @@ public class Playlist {
     @Override
     public String toString() {
         return "Playlist{" +
-                "name='" + name + '\'' +
+                "id='" + id + '\'' +
+                ", userId='" + userId + '\'' +
+                ", name='" + name + '\'' +
                 ", mediaContents=" + mediaContents +
                 '}';
     }

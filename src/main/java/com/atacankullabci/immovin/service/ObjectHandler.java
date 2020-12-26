@@ -24,7 +24,7 @@ public class ObjectHandler {
         this.mediaContentRepository = mediaContentRepository;
     }
 
-    public List<Playlist> getUserPlaylists(byte[] file) {
+    public List<Playlist> getUserPlaylists(byte[] file, String userId) {
         logger.info("Playlists xml transformation started");
 
         LibraryTransformer transformer = new LibraryTransformer();
@@ -47,7 +47,7 @@ public class ObjectHandler {
             trackIds = playListItem[1].split(",");
 
             if (playListItem.length == 2) {
-                playlist = new Playlist(playListItem[0], getPlaylistMediaContent(trackIds));
+                playlist = new Playlist(userId, playListItem[0], getPlaylistMediaContent(trackIds));
                 playlists.add(playlist);
             }
         }
@@ -85,8 +85,8 @@ public class ObjectHandler {
         MediaContent mediaContent;
         for (String mediaContentLineElem : mediaContentLineArr) {
             mediaContentArr = mediaContentLineElem.split("#");
-            mediaContent = new MediaContent(mediaContentArr[0], mediaContentArr[1],
-                    mediaContentArr[2], mediaContentArr[3], mediaContentArr[4]);
+            mediaContent = new MediaContent(mediaContentArr[0].trim(), mediaContentArr[1].trim(),
+                    mediaContentArr[2].trim(), mediaContentArr[3].trim(), mediaContentArr[4].trim());
             mediaContentList.add(mediaContent);
         }
         return mediaContentList;

@@ -274,7 +274,7 @@ public class SpotifyService {
                             spotifyTrack = getTrackFromResponse(response.getBody());
                             spotifyTrackList.add(spotifyTrack);
                         } else {
-                            logger.info("Unmeatched media content : " + mediaContent);
+                            logger.info("Unmatched media content : " + mediaContent);
                         }
                     }
                 }
