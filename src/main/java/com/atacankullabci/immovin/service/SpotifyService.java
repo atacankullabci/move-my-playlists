@@ -5,8 +5,8 @@ import com.atacankullabci.immovin.common.MediaContent;
 import com.atacankullabci.immovin.common.Playlist;
 import com.atacankullabci.immovin.common.User;
 import com.atacankullabci.immovin.dto.PlaylistDTO;
+import com.atacankullabci.immovin.dto.SpotifyResponseDTO;
 import com.atacankullabci.immovin.dto.TokenDTO;
-import com.atacankullabci.immovin.dto.TrackDTO;
 import com.atacankullabci.immovin.dto.UserDTO;
 import com.atacankullabci.immovin.repository.InProgressMapRepository;
 import com.atacankullabci.immovin.repository.UserRepository;
@@ -36,16 +36,17 @@ public class SpotifyService {
     @Value("${spotify.clientSecret}")
     private String spotifyClientSecret;
 
-    private static final String baseTrackQueryStr = "https://api.spotify.com/v1/search?q=";
+    private static final String baseQueryStr = "https://api.spotify.com/v1/search?q=";
     private static final String getFirstTrackIdJsonPath = "$.tracks.items[0].id";
     private static final String getFirstTrackURIJsonPath = "$.tracks.items[0].uri";
 
-    private final CacheService cacheService;
+    private static final String getFirstAlbumIdJsonPath = "$.albums.items[0].id";
+    private static final String getFirstAlbumURIJsonPath = "$.albums.items[0].uri";
+
     private InProgressMapRepository inProgressMapRepository;
     private UserRepository userRepository;
 
-    public SpotifyService(CacheService cacheService, InProgressMapRepository inProgressMapRepository, UserRepository userRepository) {
-        this.cacheService = cacheService;
+    public SpotifyService(InProgressMapRepository inProgressMapRepository, UserRepository userRepository) {
         this.inProgressMapRepository = inProgressMapRepository;
         this.userRepository = userRepository;
     }
@@ -124,9 +125,9 @@ public class SpotifyService {
         startUserProcess(user);
 
         try {
-            Map<String, List<TrackDTO>> playlistMap = new HashMap<>();
+            Map<String, List<SpotifyResponseDTO>> playlistMap = new HashMap<>();
             String newPlaylistId;
-            List<TrackDTO> trackList;
+            List<SpotifyResponseDTO> trackList;
 
             RestTemplate restTemplate = new RestTemplate();
             HttpEntity httpEntity = getAuthHttpEntity(user);
@@ -160,9 +161,9 @@ public class SpotifyService {
         this.inProgressMapRepository.save(new InProgressMap(user.getId(), true));
     }
 
-    public void populatePlaylist(String playlistId, List<TrackDTO> tracks, User user) {
+    public void populatePlaylist(String playlistId, List<SpotifyResponseDTO> tracks, User user) {
         String url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks";
-        List<String> trackUriList = tracks.stream().map(TrackDTO::getUri).collect(Collectors.toList());
+        List<String> trackUriList = tracks.stream().map(SpotifyResponseDTO::getUri).collect(Collectors.toList());
 
         if (!CollectionUtils.isEmpty(trackUriList)) {
             spotifyBatchRequest(trackUriList, url, user, 100, "uris", HttpMethod.POST);
@@ -224,12 +225,20 @@ public class SpotifyService {
         requestBody.clear();
     }
 
-    public void addTracksToSpotify(List<String> spotifyTrackIdList, User user) {
+    public void addTracksToSpotify(List<SpotifyResponseDTO> spotifyTrackIdList, User user) {
         String url = "https://api.spotify.com/v1/me/tracks";
 
-        spotifyBatchRequest(spotifyTrackIdList, url, user, 50, "ids", HttpMethod.PUT);
+        List<String> trackIdList = spotifyTrackIdList.stream().map(SpotifyResponseDTO::getId).collect(Collectors.toList());
 
-        endUserProcess(user);
+        spotifyBatchRequest(trackIdList, url, user, 50, "ids", HttpMethod.PUT);
+    }
+
+    public void addAlbumsToSpotify(List<SpotifyResponseDTO> spotifyAlbumIdList, User user) {
+        String url = "https://api.spotify.com/v1/me/albums";
+
+        List<String> albumIdList = spotifyAlbumIdList.stream().map(SpotifyResponseDTO::getId).collect(Collectors.toList());
+
+        spotifyBatchRequest(albumIdList, url, user, 50, "ids", HttpMethod.PUT);
     }
 
     public void requestSpotifyTrackIds(User user) {
@@ -238,21 +247,67 @@ public class SpotifyService {
         HttpEntity request = getAuthHttpEntity(user);
         RestTemplate restTemplate = new RestTemplate();
 
-        List<TrackDTO> spotifyTrackList = getAllSpotifyTracksFromMediaContentList(user.getMediaContentList(),
+        List<SpotifyResponseDTO> spotifyTrackList = getAllSpotifyTracksFromMediaContentList(user.getMediaContentList(),
                 restTemplate,
                 request);
 
-        addTracksToSpotify(spotifyTrackList.stream().map(TrackDTO::getId).collect(Collectors.toList()),
-                user);
+        addTracksToSpotify(spotifyTrackList, user);
+
+        endUserProcess(user);
     }
 
-    private List<TrackDTO> getAllSpotifyTracksFromMediaContentList(List<MediaContent> mediaContentList,
-                                                                   RestTemplate restTemplate,
-                                                                   HttpEntity request) {
+    public void requestSpotifyAlbumIds(User user) {
+        startUserProcess(user);
+
+        HttpEntity request = getAuthHttpEntity(user);
+        RestTemplate restTemplate = new RestTemplate();
+        List<SpotifyResponseDTO> spotifyAlbumList = getAllSpotifyAlbumFromMediaContentList(user.getMediaContentList(),
+                restTemplate,
+                request);
+
+        addAlbumsToSpotify(spotifyAlbumList, user);
+
+        endUserProcess(user);
+    }
+
+    public void deleteAllTracksFromLikedSongs() {
+
+    }
+
+    public List<String> getUserSavedTracks() {
+        // GET https://api.spotify.com/v1/me/tracks // getuser saved tracks
+
+        return new ArrayList<>();
+    }
+
+    private List<SpotifyResponseDTO> getAllSpotifyAlbumFromMediaContentList(List<MediaContent> mediaContentList,
+                                                                            RestTemplate restTemplate,
+                                                                            HttpEntity request) {
         ResponseEntity<String> response;
-        TrackDTO spotifyTrack;
+        SpotifyResponseDTO spotifyAlbum;
         String url;
-        List<TrackDTO> spotifyTrackList = new ArrayList<>();
+        Set<SpotifyResponseDTO> spotifyAlbumList = new HashSet<>();
+        for (MediaContent mediaContent : mediaContentList) {
+            if (mediaContent != null) {
+                url = getAlbumQueryWithArtistName(mediaContent);
+                logger.info("Requested URL : " + url);
+                response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
+                if (response.getBody().getBytes().length > 1000) {
+                    spotifyAlbum = getAlbumFromResponse(response.getBody());
+                    spotifyAlbumList.add(spotifyAlbum);
+                }
+            }
+        }
+        return new ArrayList<>(spotifyAlbumList);
+    }
+
+    private List<SpotifyResponseDTO> getAllSpotifyTracksFromMediaContentList(List<MediaContent> mediaContentList,
+                                                                             RestTemplate restTemplate,
+                                                                             HttpEntity request) {
+        ResponseEntity<String> response;
+        SpotifyResponseDTO spotifyTrack;
+        String url;
+        List<SpotifyResponseDTO> spotifyTrackList = new ArrayList<>();
         for (MediaContent mediaContent : mediaContentList) {
             if (mediaContent != null) {
                 url = getTrackQuery(mediaContent);
@@ -295,24 +350,36 @@ public class SpotifyService {
         return headers;
     }
 
-    private static TrackDTO getTrackFromResponse(String response) {
-        return new TrackDTO(JsonPath.read(response, getFirstTrackIdJsonPath),
+    private static SpotifyResponseDTO getTrackFromResponse(String response) {
+        return new SpotifyResponseDTO(JsonPath.read(response, getFirstTrackIdJsonPath),
                 JsonPath.read(response, getFirstTrackURIJsonPath));
     }
 
+    private SpotifyResponseDTO getAlbumFromResponse(String response) {
+        return new SpotifyResponseDTO(JsonPath.read(response, getFirstAlbumIdJsonPath),
+                JsonPath.read(response, getFirstAlbumURIJsonPath));
+    }
+
     private static String getTrackWithOnlyTrackName(MediaContent mediaContent) {
-        return baseTrackQueryStr + mediaContent.getTrackName().trim() + "&type=track";
+        return baseQueryStr + "track:" + mediaContent.getTrackName().trim()
+                + "&type=track";
     }
 
     private static String getTrackQueryWithoutAlbum(MediaContent mediaContent) {
-        return baseTrackQueryStr + mediaContent.getArtistName().trim()
-                + mediaContent.getTrackName() + "&type=track";
+        return baseQueryStr + "artist:" + mediaContent.getArtistName().trim()
+                + " track:" + mediaContent.getTrackName().trim()
+                + "&type=track";
     }
 
     private static String getTrackQuery(MediaContent mediaContent) {
-        return baseTrackQueryStr + mediaContent.getArtistName().trim()
-                + mediaContent.getTrackName()
-                + mediaContent.getAlbumName()
+        return baseQueryStr + "artist:" + mediaContent.getArtistName().trim()
+                + " track:" + mediaContent.getTrackName().trim()
+                + " album:" + mediaContent.getAlbumName().trim()
                 + "&type=track";
+    }
+
+    private static String getAlbumQueryWithArtistName(MediaContent mediaContent) {
+        return baseQueryStr + "album:" + mediaContent.getAlbumName().trim()
+                + " artist:" + mediaContent.getArtistName().trim() + "&type=album";
     }
 }

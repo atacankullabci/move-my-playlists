@@ -38,10 +38,12 @@ public class LibraryTransformer {
 
     public static List<MediaContent> tameMediaContent(List<MediaContent> mediaContentList) {
         for (MediaContent mediaContent : mediaContentList) {
+            /* Omit Dashes
             if (mediaContent.getAlbumName().contains("-")) {
                 int dashIndex = mediaContent.getAlbumName().indexOf("-");
                 mediaContent.setAlbumName(mediaContent.getAlbumName().substring(0, dashIndex));
             }
+             */
             if (mediaContent.toString().contains("(") || mediaContent.toString().contains(")")) {
                 omitParantheses(mediaContent);
             }

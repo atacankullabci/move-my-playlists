@@ -74,11 +74,21 @@ public class FileController {
     }
 
     @PostMapping("/migrate/tracks")
-    public ResponseEntity<Boolean> migrate(@RequestHeader("id") String id) {
+    public ResponseEntity<Boolean> migrateTracks(@RequestHeader("id") String id) {
         Optional<User> user = this.userRepository.findById(id);
         if (user.isPresent()) {
             spotifyService.checkUserAuthorization(user.get());
             this.spotifyService.requestSpotifyTrackIds(user.get());
+        }
+        return ResponseEntity.ok().body(true);
+    }
+
+    @PostMapping("/migrate/albums")
+    public ResponseEntity<Boolean> migrateAlbums(@RequestHeader("id") String id) {
+        Optional<User> user = this.userRepository.findById(id);
+        if (user.isPresent()) {
+            spotifyService.checkUserAuthorization(user.get());
+            this.spotifyService.requestSpotifyAlbumIds(user.get());
         }
         return ResponseEntity.ok().body(true);
     }
