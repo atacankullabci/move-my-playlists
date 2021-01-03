@@ -8,11 +8,14 @@ import java.util.List;
 
 @Document
 public class User {
+
     @Id
     private String id;
     private Instant registerDate;
     private SpotifyUser spotifyUser;
     private List<MediaContent> mediaContentList;
+    private List<Album> albumList;
+    private List<Playlist> playlists;
     private Token token;
 
     public User() {
@@ -55,6 +58,22 @@ public class User {
         this.mediaContentList = mediaContentList;
     }
 
+    public List<Album> getAlbumList() {
+        return albumList;
+    }
+
+    public void setAlbumList(List<Album> albumList) {
+        this.albumList = albumList;
+    }
+
+    public List<Playlist> getPlaylists() {
+        return playlists;
+    }
+
+    public void setPlaylists(List<Playlist> playlists) {
+        this.playlists = playlists;
+    }
+
     public Token getToken() {
         return token;
     }
@@ -70,6 +89,8 @@ public class User {
                 ", registerDate=" + registerDate +
                 ", spotifyUser=" + spotifyUser +
                 ", mediaContentList=" + mediaContentList +
+                ", albumList=" + albumList +
+                ", playlists=" + playlists +
                 ", token=" + token +
                 '}';
     }

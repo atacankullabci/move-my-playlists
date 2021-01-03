@@ -2,6 +2,7 @@ package com.atacankullabci.immovin.service;
 
 import com.atacankullabci.immovin.common.MediaContent;
 import com.atacankullabci.immovin.common.enums.EnumTransformationType;
+import org.springframework.stereotype.Component;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
@@ -13,18 +14,14 @@ import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
 import java.util.List;
 
+@Component
 public class LibraryTransformer {
 
     public String transform(byte[] fileContent, EnumTransformationType transformationType) throws TransformerException {
         TransformerFactory factory = TransformerFactory.newInstance();
 
         ClassLoader classLoader = getClass().getClassLoader();
-        Source xslt = null;
-        if (transformationType == EnumTransformationType.LIBRARY) {
-            xslt = new StreamSource(classLoader.getResourceAsStream("transform.xslt"));
-        } else if (transformationType == EnumTransformationType.PLAYLIST) {
-            xslt = new StreamSource(classLoader.getResourceAsStream("playlist.xslt"));
-        }
+        Source xslt = new StreamSource(classLoader.getResourceAsStream(transformationType.getTransformationFileName()));
         Transformer transformer = factory.newTransformer(xslt);
 
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(fileContent);
