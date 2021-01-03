@@ -1,26 +1,45 @@
 package com.atacankullabci.immovin.common;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
+import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
+@CompoundIndexes({
+        @CompoundIndex(def = "{'trackName':1, 'artistName':-1}", name = "trackName_artistName_compound_index", unique = true),
+        @CompoundIndex(def = "{'trackName':1, 'albumName':-1}", name = "trackName_albumName_compound_index", unique = true)}
+)
 public class MediaContent {
     @Id
+    private String id;
+    @Transient
     private String trackId;
     private String trackName;
     private String artistName;
     private String albumName;
+    private String albumArtist;
     private String genre;
 
     public MediaContent() {
     }
 
-    public MediaContent(String trackId, String trackName, String artistName, String albumName, String genre) {
+    public MediaContent(String trackId, String trackName, String artistName, String albumName, String albumArtist, String genre) {
         this.trackId = trackId;
         this.trackName = trackName;
         this.artistName = artistName;
         this.albumName = albumName;
+        this.albumArtist = albumArtist;
         this.genre = genre;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getTrackId() {
@@ -30,7 +49,6 @@ public class MediaContent {
     public void setTrackId(String trackId) {
         this.trackId = trackId;
     }
-
 
     public String getTrackName() {
         return trackName;
@@ -56,6 +74,14 @@ public class MediaContent {
         this.albumName = albumName;
     }
 
+    public String getAlbumArtist() {
+        return albumArtist;
+    }
+
+    public void setAlbumArtist(String albumArtist) {
+        this.albumArtist = albumArtist;
+    }
+
     public String getGenre() {
         return genre;
     }
@@ -65,11 +91,38 @@ public class MediaContent {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (o == this) return true;
+        if (!(o instanceof MediaContent)) {
+            return false;
+        }
+
+        MediaContent mediaContent = (MediaContent) o;
+
+        return mediaContent.trackName.equals(trackName) &&
+                mediaContent.albumName.equals(albumName) &&
+                mediaContent.albumArtist.equals(albumArtist);
+    }
+
+    //Idea from effective Java : Item 9
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + trackName.hashCode();
+        result = 31 * result + albumName.hashCode();
+        result = 31 * result + albumArtist.hashCode();
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "MediaContent{" +
-                "trackName='" + trackName + '\'' +
+                "id='" + id + '\'' +
+                ", trackId='" + trackId + '\'' +
+                ", trackName='" + trackName + '\'' +
                 ", artistName='" + artistName + '\'' +
                 ", albumName='" + albumName + '\'' +
+                ", albumArtist='" + albumArtist + '\'' +
                 ", genre='" + genre + '\'' +
                 '}';
     }

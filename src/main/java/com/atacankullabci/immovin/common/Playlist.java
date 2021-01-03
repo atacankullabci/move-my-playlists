@@ -9,15 +9,13 @@ import java.util.List;
 public class Playlist {
     @Id
     private String id;
-    private String userId;
     private String name;
     private List<MediaContent> mediaContents;
 
     public Playlist() {
     }
 
-    public Playlist(String userId, String name, List<MediaContent> mediaContents) {
-        this.userId = userId;
+    public Playlist(String name, List<MediaContent> mediaContents) {
         this.name = name;
         this.mediaContents = mediaContents;
     }
@@ -28,14 +26,6 @@ public class Playlist {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public String getName() {
@@ -58,7 +48,6 @@ public class Playlist {
     public String toString() {
         return "Playlist{" +
                 "id='" + id + '\'' +
-                ", userId='" + userId + '\'' +
                 ", name='" + name + '\'' +
                 ", mediaContents=" + mediaContents +
                 '}';

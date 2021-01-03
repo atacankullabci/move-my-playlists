@@ -1,13 +1,13 @@
 package com.atacankullabci.immovin.dto;
 
-public class TrackDTO {
+public class SpotifyResponseDTO {
     private String id;
     private String uri;
 
-    public TrackDTO() {
+    public SpotifyResponseDTO() {
     }
 
-    public TrackDTO(String id, String uri) {
+    public SpotifyResponseDTO(String id, String uri) {
         this.id = id;
         this.uri = uri;
     }
