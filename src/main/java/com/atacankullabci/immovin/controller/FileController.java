@@ -4,6 +4,7 @@ import com.atacankullabci.immovin.common.Album;
 import com.atacankullabci.immovin.common.MediaContent;
 import com.atacankullabci.immovin.common.Playlist;
 import com.atacankullabci.immovin.common.User;
+import com.atacankullabci.immovin.repository.PlaylistRepository;
 import com.atacankullabci.immovin.repository.UserRepository;
 import com.atacankullabci.immovin.service.FileService;
 import com.atacankullabci.immovin.service.FileValidationService;
@@ -28,12 +29,14 @@ public class FileController {
     private final UserRepository userRepository;
     private final FileValidationService fileValidationService;
     private final FileService fileService;
+    private final PlaylistRepository playlistRepository;
 
-    public FileController(ObjectHandler objectHandler, UserRepository userRepository, FileValidationService fileValidationService, FileService fileService) {
+    public FileController(ObjectHandler objectHandler, UserRepository userRepository, FileValidationService fileValidationService, FileService fileService, PlaylistRepository playlistRepository) {
         this.objectHandler = objectHandler;
         this.userRepository = userRepository;
         this.fileValidationService = fileValidationService;
         this.fileService = fileService;
+        this.playlistRepository = playlistRepository;
     }
 
 
@@ -77,11 +80,7 @@ public class FileController {
         // Playlist
         if (option) {
             playlists = objectHandler.getUserPlaylists(libraryFile.getBytes(), user);
-            try {
-                this.fileService.bulkSaveMediaContent(playlists, Playlist.class);
-            } catch (DuplicateKeyException duplicateKeyException) {
-                System.out.println("Duplicate playlists have been found");
-            }
+            this.playlistRepository.saveAll(playlists);
             user.setPlaylists(playlists);
         }
 

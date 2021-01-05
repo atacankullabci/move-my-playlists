@@ -134,7 +134,7 @@ public class ObjectHandler {
             trackIds = playListItem[1].split(",");
 
             if (playListItem.length == 2) {
-                playlist = new Playlist(playListItem[0], getPlaylistMediaContent(trackIds, user.getMediaContentList()));
+                playlist = new Playlist(user.getId(), playListItem[0], getPlaylistMediaContent(trackIds, user.getMediaContentList()));
                 playlists.add(playlist);
             }
         }

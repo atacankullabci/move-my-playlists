@@ -1,5 +1,6 @@
 package com.atacankullabci.immovin.controller;
 
+import com.atacankullabci.immovin.common.Album;
 import com.atacankullabci.immovin.common.Playlist;
 import com.atacankullabci.immovin.common.User;
 import com.atacankullabci.immovin.repository.UserRepository;
@@ -23,15 +24,20 @@ public class SpotifyController {
         this.userRepository = userRepository;
     }
 
-    @GetMapping("/search/albums/{albumName}/{artistName}")
-    public ResponseEntity<String> searchAlbum(@PathVariable("albumName") String albumName,
-                                              @PathVariable("artistName") String artistName) {
+    @GetMapping("/search/albums")
+    public ResponseEntity<String> searchAlbum(@RequestHeader("id") String userId,
+                                              @RequestBody Album album) {
+        Optional<User> user = this.userRepository.findById(userId);
+        if (user.isPresent()) {
+            spotifyService.checkUserAuthorization(user.get());
+            this.spotifyService.getAlbumContentByAlbumId(user.get(), album);
+        }
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/migrate/tracks")
-    public ResponseEntity<Boolean> migrateTracks(@RequestHeader("id") String id) {
-        Optional<User> user = this.userRepository.findById(id);
+    public ResponseEntity<Boolean> migrateTracks(@RequestHeader("id") String userId) {
+        Optional<User> user = this.userRepository.findById(userId);
         if (user.isPresent()) {
             spotifyService.checkUserAuthorization(user.get());
             this.spotifyService.requestSpotifyTrackIds(user.get());
@@ -40,8 +46,8 @@ public class SpotifyController {
     }
 
     @PostMapping("/migrate/albums")
-    public ResponseEntity<Boolean> migrateAlbums(@RequestHeader("id") String id) {
-        Optional<User> user = this.userRepository.findById(id);
+    public ResponseEntity<Boolean> migrateAlbums(@RequestHeader("id") String userId) {
+        Optional<User> user = this.userRepository.findById(userId);
         if (user.isPresent()) {
             spotifyService.checkUserAuthorization(user.get());
             this.spotifyService.requestSpotifyAlbumIds(user.get());
@@ -50,9 +56,9 @@ public class SpotifyController {
     }
 
     @PostMapping("/migrate/playlists")
-    public ResponseEntity<List<Playlist>> migratePlaylist(@RequestHeader("id") String id,
+    public ResponseEntity<List<Playlist>> migratePlaylist(@RequestHeader("id") String userId,
                                                           @RequestBody List<Playlist> playlists) throws Exception {
-        Optional<User> user = this.userRepository.findById(id);
+        Optional<User> user = this.userRepository.findById(userId);
         if (user.isPresent()) {
             spotifyService.checkUserAuthorization(user.get());
             this.spotifyService.addPlaylistsToSpotify(user.get(), playlists);

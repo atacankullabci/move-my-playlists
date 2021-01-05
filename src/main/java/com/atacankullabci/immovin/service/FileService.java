@@ -1,9 +1,12 @@
 package com.atacankullabci.immovin.service;
 
 import com.atacankullabci.immovin.common.MediaContent;
+import com.mongodb.bulk.BulkWriteInsert;
+import com.mongodb.bulk.BulkWriteResult;
 import org.springframework.data.mongodb.core.BulkOperations;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,12 +23,15 @@ public class FileService {
         this.mongoTemplate = mongoTemplate;
     }
 
+    @Transactional
     public void bulkSaveMediaContent(List<?> objectList, Class clazz) {
         BulkOperations bulkOperations = mongoTemplate.bulkOps(BulkOperations.BulkMode.UNORDERED, clazz);
-        for (Object obj : objectList) {
-            bulkOperations.insert(obj);
+        bulkOperations.insert(objectList);
+        BulkWriteResult bulkWriteResult = bulkOperations.execute();
+        List<BulkWriteInsert> list = bulkWriteResult.getInserts();
+        for (BulkWriteInsert insert : list) {
+            System.out.println(insert);
         }
-        bulkOperations.execute();
     }
 
     public List<MediaContent> combineNewVersionMediaContentList(List<MediaContent> prevMediaContentList,

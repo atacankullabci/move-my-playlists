@@ -1,9 +1,6 @@
 package com.atacankullabci.immovin.service;
 
-import com.atacankullabci.immovin.common.InProgressMap;
-import com.atacankullabci.immovin.common.MediaContent;
-import com.atacankullabci.immovin.common.Playlist;
-import com.atacankullabci.immovin.common.User;
+import com.atacankullabci.immovin.common.*;
 import com.atacankullabci.immovin.dto.PlaylistDTO;
 import com.atacankullabci.immovin.dto.SpotifyResponseDTO;
 import com.atacankullabci.immovin.dto.TokenDTO;
@@ -42,6 +39,8 @@ public class SpotifyService {
 
     private static final String getFirstAlbumIdJsonPath = "$.albums.items[0].id";
     private static final String getFirstAlbumURIJsonPath = "$.albums.items[0].uri";
+
+    private static final String getAlbumContentJsonPath = "$.tracks.items[*].[\'track_number\',\'name\',\'duration_ms\']";
 
     private InProgressMapRepository inProgressMapRepository;
     private UserRepository userRepository;
@@ -261,7 +260,7 @@ public class SpotifyService {
 
         HttpEntity request = getAuthHttpEntity(user);
         RestTemplate restTemplate = new RestTemplate();
-        List<SpotifyResponseDTO> spotifyAlbumList = getAllSpotifyAlbumFromMediaContentList(user.getMediaContentList(),
+        List<SpotifyResponseDTO> spotifyAlbumList = getAllSpotifyAlbumFromMediaContentList(user.getAlbumList(),
                 restTemplate,
                 request);
 
@@ -280,16 +279,16 @@ public class SpotifyService {
         return new ArrayList<>();
     }
 
-    private List<SpotifyResponseDTO> getAllSpotifyAlbumFromMediaContentList(List<MediaContent> mediaContentList,
+    private List<SpotifyResponseDTO> getAllSpotifyAlbumFromMediaContentList(List<Album> albumList,
                                                                             RestTemplate restTemplate,
                                                                             HttpEntity request) {
         ResponseEntity<String> response;
         SpotifyResponseDTO spotifyAlbum;
         String url;
         Set<SpotifyResponseDTO> spotifyAlbumList = new HashSet<>();
-        for (MediaContent mediaContent : mediaContentList) {
-            if (mediaContent != null) {
-                url = getAlbumQueryWithArtistName(mediaContent);
+        for (Album album : albumList) {
+            if (album != null) {
+                url = getAlbumQueryWithArtistName(album);
                 logger.info("Requested URL : " + url);
                 response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
                 if (response.getBody().getBytes().length > 1000) {
@@ -299,6 +298,17 @@ public class SpotifyService {
             }
         }
         return new ArrayList<>(spotifyAlbumList);
+    }
+
+    public List<SpotifyAlbum> getAlbumContentByAlbumId(User user, Album album) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpEntity request = getAuthHttpEntity(user);
+        String url = getAlbumQueryWithArtistName(album);
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
+
+        logger.info("Requested URL : " + url);
+
+        return getAlbumContentFromResponse(response.getBody());
     }
 
     private List<SpotifyResponseDTO> getAllSpotifyTracksFromMediaContentList(List<MediaContent> mediaContentList,
@@ -360,6 +370,11 @@ public class SpotifyService {
                 JsonPath.read(response, getFirstAlbumURIJsonPath));
     }
 
+    private List<SpotifyAlbum> getAlbumContentFromResponse(String response) {
+        List<SpotifyAlbum> spotifyAlbumList = JsonPath.read(response, getAlbumContentJsonPath);
+        return spotifyAlbumList;
+    }
+
     private static String getTrackWithOnlyTrackName(MediaContent mediaContent) {
         return baseQueryStr + "track:" + mediaContent.getTrackName().trim()
                 + "&type=track";
@@ -378,8 +393,8 @@ public class SpotifyService {
                 + "&type=track";
     }
 
-    private static String getAlbumQueryWithArtistName(MediaContent mediaContent) {
-        return baseQueryStr + "album:" + mediaContent.getAlbumName().trim()
-                + " artist:" + mediaContent.getArtistName().trim() + "&type=album";
+    private static String getAlbumQueryWithArtistName(Album album) {
+        return baseQueryStr + "album:" + album.getAlbumName().trim()
+                + " artist:" + album.getAlbumArtist().trim() + "&type=album";
     }
 }
