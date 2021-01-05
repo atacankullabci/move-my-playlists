@@ -2,11 +2,9 @@ package com.atacankullabci.immovin.common;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
-import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document
-@CompoundIndex(def = "{'trackName':1, 'artistName':-1, 'albumName':-1}", name = "trackName_artistName_albumName_compound_index", unique = true)
 public class MediaContent {
     @Id
     private String id;
@@ -28,6 +26,7 @@ public class MediaContent {
         this.albumName = albumName;
         this.albumArtist = albumArtist;
         this.genre = genre;
+        this.id = String.valueOf(this.hashCode());
     }
 
     public String getId() {
@@ -100,7 +99,6 @@ public class MediaContent {
                 mediaContent.albumArtist.equals(albumArtist);
     }
 
-    //Idea from effective Java : Item 9
     @Override
     public int hashCode() {
         int result = 17;

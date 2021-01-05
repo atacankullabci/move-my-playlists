@@ -128,13 +128,9 @@ public class ObjectHandler {
         Playlist playlist;
         for (String pl : playlistContentLineArr) {
             playListItem = pl.split("#");
-            if (playListItem.length < 2) {
-                continue;
-            }
-            trackIds = playListItem[1].split(",");
-
-            if (playListItem.length == 2) {
-                playlist = new Playlist(user.getId(), playListItem[0], getPlaylistMediaContent(trackIds, user.getMediaContentList()));
+            if (playListItem.length == 3) {
+                trackIds = playListItem[2].split(",");
+                playlist = new Playlist(user.getId(), playListItem[0], playListItem[1], getPlaylistMediaContent(trackIds, user.getMediaContentList()));
                 playlists.add(playlist);
             }
         }

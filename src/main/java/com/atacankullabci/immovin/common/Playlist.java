@@ -16,8 +16,9 @@ public class Playlist {
     public Playlist() {
     }
 
-    public Playlist(String userId, String name, List<MediaContent> mediaContents) {
+    public Playlist(String userId, String id, String name, List<MediaContent> mediaContents) {
         this.userId = userId;
+        this.id = id;
         this.name = name;
         this.mediaContents = mediaContents;
     }

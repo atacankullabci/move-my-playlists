@@ -4,13 +4,14 @@ import com.atacankullabci.immovin.common.Album;
 import com.atacankullabci.immovin.common.MediaContent;
 import com.atacankullabci.immovin.common.Playlist;
 import com.atacankullabci.immovin.common.User;
+import com.atacankullabci.immovin.repository.AlbumRepository;
+import com.atacankullabci.immovin.repository.MediaContentRepository;
 import com.atacankullabci.immovin.repository.PlaylistRepository;
 import com.atacankullabci.immovin.repository.UserRepository;
 import com.atacankullabci.immovin.service.FileService;
 import com.atacankullabci.immovin.service.FileValidationService;
 import com.atacankullabci.immovin.service.LibraryTransformer;
 import com.atacankullabci.immovin.service.ObjectHandler;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,13 +31,17 @@ public class FileController {
     private final FileValidationService fileValidationService;
     private final FileService fileService;
     private final PlaylistRepository playlistRepository;
+    private final MediaContentRepository mediaContentRepository;
+    private final AlbumRepository albumRepository;
 
-    public FileController(ObjectHandler objectHandler, UserRepository userRepository, FileValidationService fileValidationService, FileService fileService, PlaylistRepository playlistRepository) {
+    public FileController(ObjectHandler objectHandler, UserRepository userRepository, FileValidationService fileValidationService, FileService fileService, PlaylistRepository playlistRepository, MediaContentRepository mediaContentRepository, AlbumRepository albumRepository) {
         this.objectHandler = objectHandler;
         this.userRepository = userRepository;
         this.fileValidationService = fileValidationService;
         this.fileService = fileService;
         this.playlistRepository = playlistRepository;
+        this.mediaContentRepository = mediaContentRepository;
+        this.albumRepository = albumRepository;
     }
 
 
@@ -58,23 +63,16 @@ public class FileController {
         // TODO: Try async operation for this method if possible
         mediaContentList = LibraryTransformer.tameMediaContent(mediaContentList);
 
-        try {
-            this.fileService.bulkSaveMediaContent(mediaContentList, MediaContent.class);
-        } catch (DuplicateKeyException duplicateKeyException) {
-            // If user requests to user the older library content
-            // user.setMediaContentList(this.fileService.combineNewVersionMediaContentList(user.getMediaContentList(), mediaContentList));
-            System.out.println("Duplicate tracks have been found");
-        }
+        // If user is willing to combine previous transfers
+        // mediaContentList = this.fileService.combineNewVersionMediaContentList(this.mediaContentRepository.findAll(), mediaContentList);
+
+        this.mediaContentRepository.saveAll(mediaContentList);
         user.setMediaContentList(mediaContentList);
 
         // Album
         albumList = this.objectHandler.getAlbumList(libraryFile.getBytes());
         Collections.sort(albumList);
-        try {
-            this.fileService.bulkSaveMediaContent(albumList, Album.class);
-        } catch (DuplicateKeyException duplicateKeyException) {
-            System.out.println("Duplicate albums have been found");
-        }
+        this.albumRepository.saveAll(albumList);
         user.setAlbumList(albumList);
 
         // Playlist
