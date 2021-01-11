@@ -1,12 +1,10 @@
 package com.atacankullabci.immovin.common;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.util.StringUtils;
 
 @Document
-@CompoundIndex(def = "{'albumName':1, 'albumArtist':-1}", name = "albumName_albumArtist_compound_index", unique = true)
 public class Album implements Comparable<Album> {
 
     @Id
@@ -26,6 +24,7 @@ public class Album implements Comparable<Album> {
         this.genre = genre;
         this.year = year;
         this.trackCount = trackCount;
+        this.id = String.valueOf(this.hashCode());
     }
 
     public String getId() {
@@ -74,6 +73,15 @@ public class Album implements Comparable<Album> {
 
     public void setTrackCount(String trackCount) {
         this.trackCount = trackCount;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 17;
+        result = 31 * result + albumName.hashCode();
+        result = 31 * result + albumArtist.hashCode();
+        result = 31 * result + year.hashCode();
+        return result;
     }
 
     @Override

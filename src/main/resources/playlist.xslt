@@ -4,6 +4,8 @@
         <xsl:apply-templates select="plist/dict/array/dict"/>
     </xsl:template>
     <xsl:template match="dict">
+        <xsl:value-of select="key[. = 'Playlist Persistent ID']/following-sibling::string[1]"/>
+        <xsl:text>#</xsl:text>
         <xsl:value-of select="key[. = 'Name']/following-sibling::string[1]"/>
         <xsl:text>#</xsl:text>
         <xsl:for-each select="array/dict">
