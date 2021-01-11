@@ -2,12 +2,16 @@ package com.atacankullabci.immovin.controller;
 
 import com.atacankullabci.immovin.common.Album;
 import com.atacankullabci.immovin.common.Playlist;
+import com.atacankullabci.immovin.common.SpotifyAlbum;
 import com.atacankullabci.immovin.common.User;
+import com.atacankullabci.immovin.dto.SpotifyResponseDTO;
+import com.atacankullabci.immovin.repository.AlbumRepository;
 import com.atacankullabci.immovin.repository.UserRepository;
 import com.atacankullabci.immovin.service.SpotifyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,21 +22,28 @@ public class SpotifyController {
 
     private final SpotifyService spotifyService;
     private final UserRepository userRepository;
+    private final AlbumRepository albumRepository;
 
-    public SpotifyController(SpotifyService spotifyService, UserRepository userRepository) {
+    public SpotifyController(SpotifyService spotifyService, UserRepository userRepository, AlbumRepository albumRepository) {
         this.spotifyService = spotifyService;
         this.userRepository = userRepository;
+        this.albumRepository = albumRepository;
     }
 
     @GetMapping("/search/albums")
-    public ResponseEntity<String> searchAlbum(@RequestHeader("id") String userId,
-                                              @RequestBody Album album) {
+    public ResponseEntity<List<SpotifyAlbum>> searchAlbum(@RequestHeader("id") String userId,
+                                                          @RequestParam String albumId) {
         Optional<User> user = this.userRepository.findById(userId);
+        Optional<Album> album = this.albumRepository.findById(albumId);
+
+        List<SpotifyAlbum> albumContentList = new ArrayList<>();
+
         if (user.isPresent()) {
             spotifyService.checkUserAuthorization(user.get());
-            this.spotifyService.getAlbumContentByAlbumId(user.get(), album);
+            SpotifyResponseDTO spotifyAlbum = this.spotifyService.getAlbumContentByAlbumNameAndAlbumArtist(user.get(), album.orElse(null));
+            albumContentList = this.spotifyService.getSpotifyAlbumContentByAlbumId(user.get(), spotifyAlbum);
         }
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body(albumContentList);
     }
 
     @PostMapping("/migrate/tracks")
