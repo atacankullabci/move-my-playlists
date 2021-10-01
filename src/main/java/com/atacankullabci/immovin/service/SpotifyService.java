@@ -10,6 +10,7 @@ import com.atacankullabci.immovin.repository.UserRepository;
 import com.jayway.jsonpath.JsonPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -45,18 +46,20 @@ public class SpotifyService {
 
     private final InProgressMapRepository inProgressMapRepository;
     private final UserRepository userRepository;
+    private final RestTemplate restTemplate;
 
-    public SpotifyService(InProgressMapRepository inProgressMapRepository, UserRepository userRepository) {
+    public SpotifyService(InProgressMapRepository inProgressMapRepository,
+                          UserRepository userRepository,
+                          @Qualifier("basicRestTemplate") RestTemplate restTemplate) {
         this.inProgressMapRepository = inProgressMapRepository;
         this.userRepository = userRepository;
+        this.restTemplate = restTemplate;
     }
 
     public TokenDTO getJWTToken(String code) {
         String url = "https://accounts.spotify.com/api/token";
         HttpEntity<MultiValueMap<String, String>> request;
         ResponseEntity<TokenDTO> response = null;
-
-        RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -79,8 +82,6 @@ public class SpotifyService {
         HttpEntity<MultiValueMap<String, String>> request;
         ResponseEntity<TokenDTO> response = null;
 
-        RestTemplate restTemplate = new RestTemplate();
-
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         String authStr = spotifyClientId + ":" + spotifyClientSecret;
@@ -102,7 +103,6 @@ public class SpotifyService {
         String url = "https://api.spotify.com/v1/me";
         ResponseEntity<UserDTO> response = null;
         HttpEntity<MultiValueMap<String, String>> request;
-        RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
 
@@ -129,9 +129,7 @@ public class SpotifyService {
             String newPlaylistId;
             List<SpotifyResponseDTO> trackList;
 
-            RestTemplate restTemplate = new RestTemplate();
             HttpEntity httpEntity = getAuthHttpEntity(user);
-
 
             for (Playlist playlist : playlists) {
                 newPlaylistId = createPlaylist(playlist.getName(), user);
@@ -174,7 +172,6 @@ public class SpotifyService {
         String createPlaylistUrl = "https://api.spotify.com/v1/users/" + user.getSpotifyUser().getId() + "/playlists";
         HttpHeaders headers = getAuthHttpHeader(user);
         HttpEntity<MultiValueMap<String, String>> httpEntity;
-        RestTemplate restTemplate = new RestTemplate();
 
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("name", playListName);
@@ -188,7 +185,6 @@ public class SpotifyService {
                                      int batchSize,
                                      String bodyParameterName,
                                      HttpMethod httpMethod) {
-        RestTemplate restTemplate = new RestTemplate();
         HttpEntity<MultiValueMap<String, String>> httpEntity;
         HttpHeaders headers = getAuthHttpHeader(user);
         Map<String, List<String>> requestBody = new HashMap<>();
@@ -245,7 +241,6 @@ public class SpotifyService {
         startUserProcess(user);
 
         HttpEntity request = getAuthHttpEntity(user);
-        RestTemplate restTemplate = new RestTemplate();
 
         List<SpotifyResponseDTO> spotifyTrackList = getAllSpotifyTracksFromMediaContentList(user.getMediaContentList(),
                 restTemplate,
@@ -260,7 +255,6 @@ public class SpotifyService {
         startUserProcess(user);
 
         HttpEntity request = getAuthHttpEntity(user);
-        RestTemplate restTemplate = new RestTemplate();
         List<SpotifyResponseDTO> spotifyAlbumList = getAllSpotifyAlbumFromMediaContentList(user.getAlbumList(),
                 restTemplate,
                 request);
@@ -302,7 +296,6 @@ public class SpotifyService {
     }
 
     public SpotifyResponseDTO getAlbumContentByAlbumNameAndAlbumArtist(User user, Album album) {
-        RestTemplate restTemplate = new RestTemplate();
         HttpEntity request = getAuthHttpEntity(user);
         String url = getAlbumQueryWithArtistName(album);
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
@@ -314,7 +307,6 @@ public class SpotifyService {
 
     public List<SpotifyAlbum> getSpotifyAlbumContentByAlbumId(User user, SpotifyResponseDTO spotifyAlbum) {
         String url = "https://api.spotify.com/v1/albums/" + spotifyAlbum.getId() + "/tracks";
-        RestTemplate restTemplate = new RestTemplate();
         HttpEntity request = getAuthHttpEntity(user);
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, request, String.class);
         return getAlbumContent(response.getBody());
